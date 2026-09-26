@@ -119,19 +119,25 @@
   .app-header .brand:hover h3 span:nth-child(11) { transition-delay: 0.09s; }
   .app-header .brand:hover h3 span:nth-child(12) { transition-delay: 0.10s; }
   .app-header .brand:hover h3 span:nth-child(13) { transition-delay: 0.11s; }
+  .app-header .brand:hover h3 span:nth-child(14) { transition-delay: 0.12s; }
+  .app-header .brand:hover h3 span:nth-child(15) { transition-delay: 0.13s; }
+  .app-header .brand:hover h3 span:nth-child(16) { transition-delay: 0.14s; }
   
-  .app-header .brand h3 span:nth-child(2)  { transition-delay: 0.11s; }
-  .app-header .brand h3 span:nth-child(3)  { transition-delay: 0.10s; }
-  .app-header .brand h3 span:nth-child(4)  { transition-delay: 0.09s; }
-  .app-header .brand h3 span:nth-child(5)  { transition-delay: 0.08s; }
-  .app-header .brand h3 span:nth-child(6)  { transition-delay: 0.07s; }
-  .app-header .brand h3 span:nth-child(7)  { transition-delay: 0.06s; }
-  .app-header .brand h3 span:nth-child(8)  { transition-delay: 0.05s; }
-  .app-header .brand h3 span:nth-child(9)  { transition-delay: 0.04s; }
-  .app-header .brand h3 span:nth-child(10) { transition-delay: 0.03s; }
-  .app-header .brand h3 span:nth-child(11) { transition-delay: 0.02s; }
-  .app-header .brand h3 span:nth-child(12) { transition-delay: 0.01s; }
-  .app-header .brand h3 span:nth-child(13) { transition-delay: 0.00s; }
+  .app-header .brand h3 span:nth-child(2)  { transition-delay: 0.14s; }
+  .app-header .brand h3 span:nth-child(3)  { transition-delay: 0.13s; }
+  .app-header .brand h3 span:nth-child(4)  { transition-delay: 0.12s; }
+  .app-header .brand h3 span:nth-child(5)  { transition-delay: 0.11s; }
+  .app-header .brand h3 span:nth-child(6)  { transition-delay: 0.10s; }
+  .app-header .brand h3 span:nth-child(7)  { transition-delay: 0.09s; }
+  .app-header .brand h3 span:nth-child(8)  { transition-delay: 0.08s; }
+  .app-header .brand h3 span:nth-child(9)  { transition-delay: 0.07s; }
+  .app-header .brand h3 span:nth-child(10) { transition-delay: 0.06s; }
+  .app-header .brand h3 span:nth-child(11) { transition-delay: 0.05s; }
+  .app-header .brand h3 span:nth-child(12) { transition-delay: 0.04s; }
+  .app-header .brand h3 span:nth-child(13) { transition-delay: 0.03s; }
+  .app-header .brand h3 span:nth-child(14) { transition-delay: 0.02s; }
+  .app-header .brand h3 span:nth-child(15) { transition-delay: 0.01s; }
+  .app-header .brand h3 span:nth-child(16) { transition-delay: 0.00s; }
   
   .app-header .actions {
     display: flex;
