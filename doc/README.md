@@ -104,3 +104,30 @@ The template is now ready for the next development phase:
    - Configure Astro Content Collections (`src/content/blog/`) for writing articles using MDX with custom UI components.
 5. **Asset Relocation**:
    - Move font files and static assets to Astro's `public/` directory.
+
+---
+
+## 6. Repository & Branch Reference (Updated 2026-09-27)
+
+> See also: `doc/BRANCHES.md` for full details.
+
+### Remote
+
+* **GitHub:** `sumanezhumalai/blog` — `git@github.com:sumanezhumalai/blog.git` (`origin`)
+* Added via `git remote add origin git@github.com:sumanezhumalai/blog.git`
+
+### Branches
+
+| Branch | Purpose | Status |
+| :--- | :--- | :--- |
+| `main` | Stable / production — pushed to `origin/main` (`be83406`), tracks `origin/main` | `git switch main` |
+| `rc` | Release candidate / development — renamed from `quattrodots` via `git branch -m quattrodots rc` (non-destructive) | `git switch rc` (current) |
+
+Both branches currently point to the same commit `be83406` (`refactor(pre-astro)`). History is linear (6 commits, no merges). Rename only moved `.git/refs/heads/quattrodots` → `.git/refs/heads/rc`; SHAs, working tree, and reflog unchanged. No remote existed before, so no collision.
+
+Quick verify:
+```bash
+git branch -a
+git log --oneline --graph --all --decorate
+git remote -v
+```
