@@ -2,26 +2,38 @@
 //------------------------------------------------------------------------------
 
 
-$(document).ready(function() {
+// Touch detection — replaces Modernizr
+// Runs synchronously (before DOMContentLoaded) so that CSS rules that select
+// html.touchevents / html.no-touchevents apply on first paint with no flash.
+// No caveats: ('ontouchstart' in window) + maxTouchPoints covers all modern browsers.
+var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+document.documentElement.classList.add(isTouch ? 'touchevents' : 'no-touchevents');
+
+
+document.addEventListener('DOMContentLoaded', function() {
 
   // Reset the window scroll position to top on every page load and re-load
   if (history.scrollRestoration) {
     history.scrollRestoration = 'manual';
   }
 
-  // Fix touch device touch events
-  $('body *').on('touchstart', function (){});
+  // Fix touch device touch events (passive for scroll performance)
+  document.querySelectorAll('body *').forEach(function(el) {
+    el.addEventListener('touchstart', function() {}, { passive: true });
+  });
 
   // Set the copyright to the current year in local time
   var currentYear = new Date().getFullYear();
-  $('.copyright .year').html(currentYear);
+  var yearEl = document.querySelector('.copyright .year');
+  if (yearEl) yearEl.textContent = currentYear;
 
   // Detect if user prefers dark mode and apply it
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    if ( $('body').hasClass('theme--16') ){
-         appThemeRemoveAll();
-         $('body').addClass('theme--00');
-         $('.app-aside .slider').val(0);
+    if (document.body.classList.contains('theme--16')) {
+      appThemeRemoveAll();
+      document.body.classList.add('theme--00');
+      var slider = document.querySelector('.app-aside .slider');
+      if (slider) slider.value = 0;
     }
   }
 
@@ -30,7 +42,7 @@ $(document).ready(function() {
     window.setTimeout(hideAppCover, 1750);
   }
   function hideAppCover() {
-    $('body').removeClass('cover--is--visible');
+    document.body.classList.remove('cover--is--visible');
   }
   hideAppCoverDelay();
 
@@ -39,314 +51,264 @@ $(document).ready(function() {
     window.setTimeout(removeLoadingClass, 3250);
   }
   function removeLoadingClass() {
-    $('body').removeClass('is--loading');
+    document.body.classList.remove('is--loading');
   }
   removeLoadingClassDelay();
 
   // Mobile nav trigger
-  $('.app-header .navigation').click(function() {
-    if ( $('body').hasClass('mobile-nav--is--visible') ){
-      closeMobileNav();
-    }
-    else {
-      openMobileNav();
-    }
-  });
+  var navToggle = document.querySelector('.app-header .navigation');
+  if (navToggle) {
+    navToggle.addEventListener('click', function() {
+      if (document.body.classList.contains('mobile-nav--is--visible')) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
+    });
+  }
 
   // Close mobile nav when any nav item is clicked
-  $('.app-nav .item').click(function() {
-    if ( $('body').hasClass('mobile-nav--is--visible') ){
-      closeMobileNav();
-    }
+  document.querySelectorAll('.app-nav .item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      if (document.body.classList.contains('mobile-nav--is--visible')) {
+        closeMobileNav();
+      }
+    });
   });
 
   // Scroll to Contact from app nav
-  $('.app-nav .item.contact').click(function() {
-    if ( $('body').hasClass('mobile-nav--is--visible') ){
-      function scrollDelay() {
+  var navContactItem = document.querySelector('.app-nav .item.contact');
+  if (navContactItem) {
+    navContactItem.addEventListener('click', function() {
+      if (document.body.classList.contains('mobile-nav--is--visible')) {
+        // Wait for nav close animation before scrolling
         window.setTimeout(scrollToContact, 300);
+      } else {
+        scrollToContact();
       }
-      scrollDelay();
-    }
-    else {
-      scrollToContact();
-    }
-  });
+    });
+  }
 
   // Auto hide mobile nav on window resize to prevent visibility bugs
-  $(window).on( 'resize', function() {
-    if ( $('body').hasClass('mobile-nav--is--visible') ){
+  window.addEventListener('resize', function() {
+    if (document.body.classList.contains('mobile-nav--is--visible')) {
       closeMobileNav();
     }
   });
 
-  // Make theme slider visible on hover (non-touch devices)
-  $('html.no-touchevents .option.theme').mouseenter(function() {
-    $('body').addClass('theme-slider--is--visible');
-  });
-  $('html.no-touchevents .option.theme').mouseleave(function() {
-    $('body').removeClass('theme-slider--is--visible');
-  });
-
-  // Make theme slider visible on tap (touch devices)
-  $('html.touchevents .option.theme').click(function() {
-    $('body').addClass('theme-slider--is--visible');
-  });
-  // Dismiss theme slider when tapping elsewhere
-  $('html.touchevents').click(function(event) {
-    if (!$(event.target).closest('.option.theme').length) {
-      $('body').removeClass('theme-slider--is--visible');
+  // Theme slider — hover to expand (non-touch devices only)
+  if (!isTouch) {
+    var themeOption = document.querySelector('.option.theme');
+    if (themeOption) {
+      themeOption.addEventListener('mouseenter', function() {
+        document.body.classList.add('theme-slider--is--visible');
+      });
+      themeOption.addEventListener('mouseleave', function() {
+        document.body.classList.remove('theme-slider--is--visible');
+      });
     }
-  });
+  }
 
-  // Theme slider
-  $('.app-aside .slider').on('input', function() {
-    var sliderValue = $(this).val();
-
-    // pad with leading zero
-    if ( sliderValue < 10 ){
-      sliderValue = 0 + sliderValue;
+  // Theme slider — tap to expand (touch devices only)
+  if (isTouch) {
+    var themeOptionTouch = document.querySelector('.option.theme');
+    if (themeOptionTouch) {
+      themeOptionTouch.addEventListener('click', function() {
+        document.body.classList.add('theme-slider--is--visible');
+      });
     }
+    // Dismiss theme slider when tapping anywhere else on the page
+    document.documentElement.addEventListener('click', function(event) {
+      if (!event.target.closest('.option.theme')) {
+        document.body.classList.remove('theme-slider--is--visible');
+      }
+    });
+  }
 
-    appThemeRemoveAll();
-    $('body').addClass('theme--' + sliderValue);
+  // Theme slider — value change
+  var themeSlider = document.querySelector('.app-aside .slider');
+  if (themeSlider) {
+    themeSlider.addEventListener('input', function() {
+      var val = parseInt(this.value, 10);
+      // Pad single-digit values with leading zero to match class names (e.g. 'theme--05')
+      var padded = val < 10 ? '0' + val : '' + val;
+      appThemeRemoveAll();
+      document.body.classList.add('theme--' + padded);
+    });
+  }
+
+  // Grid overlay toggle button
+  var gridOption = document.querySelector('.option.grid');
+  if (gridOption) {
+    gridOption.addEventListener('click', function() {
+      appGridOverlay();
+    });
+  }
+
+  // Scroll to Contact from inline text links within sections
+  document.querySelectorAll('.section a.contact').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      scrollToContact();
+    });
   });
 
-  // Grid overlay toggle
-  $('.option.grid').click(function() {
-    appGridOverlay();
-  });
-
-  // Scroll to Contact from text links within sections
-  $('.section a.contact').click(function() {
-    scrollToContact();
-  });
-
-}); // End document ready
+}); // End DOMContentLoaded
 
 
 
 // Keyboard Shortcuts
 // reference https://www.w3.org/2002/09/tests/keys.html
-$(document).keydown(function(key) {
+document.addEventListener('keydown', function(key) {
 
-    switch(parseInt(key.which,10)) {
+  switch(parseInt(key.which, 10)) {
 
-      // 'g' key — toggle grid overlay
-      case 71:
-        appGridOverlay();
-        break;
+    // 'g' key — toggle grid overlay
+    case 71:
+      appGridOverlay();
+      break;
 
-      // ';' key — toggle grid overlay
-      case 186:
-        appGridOverlay();
-        break;
+    // ';' key — toggle grid overlay
+    case 186:
+      appGridOverlay();
+      break;
 
-      // 'w' key — toggle white/black theme
-      case 87:
-        appTheme();
-        break;
+    // 'w' key — toggle white/black theme
+    case 87:
+      appTheme();
+      break;
 
-      // 'b' key — toggle black/white theme
-      case 66:
-        appTheme();
-        break;
+    // 'b' key — toggle black/white theme
+    case 66:
+      appTheme();
+      break;
 
-      // 's' key — cycle through all themes
-      case 83:
-        appThemeSpectrum();
-        break;
-    }
+    // 's' key — cycle through all themes
+    case 83:
+      appThemeSpectrum();
+      break;
+  }
 });
 
 
+
 // Scroll to Contact (footer)
+// Uses native scrollIntoView — smooth, efficient, no easing library required.
 function scrollToContact() {
-
-  var pageHeight = $(document).height();
-  var viewportHeight = $(window).height();
-
-  var sectionContact = $('.app-main .section.contact');
-  var sectionContactHeight = sectionContact.height();
-  var sectionContactTop = sectionContact.offset().top;
-
-  if ( sectionContactHeight > viewportHeight ) {
-    $('html, body').animate({ scrollTop: sectionContactTop }, 750, 'easeOutCubic');
+  var sectionContact = document.querySelector('.app-main .section.contact');
+  if (sectionContact) {
+    sectionContact.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  else {
-    $('html, body').animate({ scrollTop: pageHeight - viewportHeight }, 750, 'easeOutCubic');
-  }
-
 }
 
 // Open mobile nav
 function openMobileNav() {
-  $('body').addClass('mobile-nav--is--transitioning');
-  function addVisibleClassDelay() {
-    window.setTimeout(addVisibleClass, 1);
-  }
-  function addVisibleClass() {
-    $('body').addClass('mobile-nav--is--visible');
-  }
-  addVisibleClassDelay();
+  document.body.classList.add('mobile-nav--is--transitioning');
+  // 1ms delay allows the browser to paint the transitioning class before adding visible,
+  // which triggers the CSS opacity transition correctly.
+  window.setTimeout(function() {
+    document.body.classList.add('mobile-nav--is--visible');
+  }, 1);
 }
 
 // Close mobile nav
 function closeMobileNav() {
-  $('body').removeClass('mobile-nav--is--visible');
-  function removeTransitioningClassDelay() {
-    window.setTimeout(removeTransitioningClass, 500);
-  }
-  function removeTransitioningClass() {
-    $('body').removeClass('mobile-nav--is--transitioning');
-  }
-  removeTransitioningClassDelay();
+  document.body.classList.remove('mobile-nav--is--visible');
+  window.setTimeout(function() {
+    document.body.classList.remove('mobile-nav--is--transitioning');
+  }, 500);
 }
 
 // Remove all theme-- classes from body
 function appThemeRemoveAll() {
-  $('body').removeClass(function (index, themeClassName) {
-    return (themeClassName.match (/(^|\s)theme--\S+/g) || []).join(' ');
+  var toRemove = [];
+  document.body.classList.forEach(function(cls) {
+    if (/^theme--/.test(cls)) {
+      toRemove.push(cls);
+    }
+  });
+  toRemove.forEach(function(cls) {
+    document.body.classList.remove(cls);
   });
 }
 
-// Toggle between black and white themes
+// Toggle between black (theme--00) and white (theme--16)
 function appTheme() {
-  if ( $('body').hasClass('theme--00') ){
+  var slider = document.querySelector('.app-aside .slider');
+  if (document.body.classList.contains('theme--00')) {
     appThemeRemoveAll();
-    $('body').addClass('theme--16');
-    $('.app-aside .slider').val(16);
-  }
-  else {
-       appThemeRemoveAll();
-       $('body').addClass('theme--00');
-       $('.app-aside .slider').val(0);
+    document.body.classList.add('theme--16');
+    if (slider) slider.value = 16;
+  } else {
+    appThemeRemoveAll();
+    document.body.classList.add('theme--00');
+    if (slider) slider.value = 0;
   }
 }
 
-// Cycle through all themes
+// Cycle through all themes sequentially (16 → 15 → ... → 00 → 16)
 function appThemeSpectrum() {
-  if ( $('body').hasClass('theme--16') ){
-       appThemeRemoveAll();
-       $('body').addClass('theme--15');
-       $('.app-aside .slider').val(15);
+  var slider = document.querySelector('.app-aside .slider');
+  var themes = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'];
+
+  // Find the currently active theme index
+  var currentIndex = -1;
+  for (var i = 0; i < themes.length; i++) {
+    if (document.body.classList.contains('theme--' + themes[i])) {
+      currentIndex = i;
+      break;
+    }
   }
-  else if ( $('body').hasClass('theme--15') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--14');
-            $('.app-aside .slider').val(14);
-  }
-  else if ( $('body').hasClass('theme--14') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--13');
-            $('.app-aside .slider').val(13);
-  }
-  else if ( $('body').hasClass('theme--13') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--12');
-            $('.app-aside .slider').val(12);
-  }
-  else if ( $('body').hasClass('theme--12') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--11');
-            $('.app-aside .slider').val(11);
-  }
-  else if ( $('body').hasClass('theme--11') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--10');
-            $('.app-aside .slider').val(10);
-  }
-  else if ( $('body').hasClass('theme--10') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--09');
-            $('.app-aside .slider').val(9);
-  }
-  else if ( $('body').hasClass('theme--09') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--08');
-            $('.app-aside .slider').val(8);
-  }
-  else if ( $('body').hasClass('theme--08') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--07');
-            $('.app-aside .slider').val(7);
-  }
-  else if ( $('body').hasClass('theme--07') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--06');
-            $('.app-aside .slider').val(6);
-  }
-  else if ( $('body').hasClass('theme--06') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--05');
-            $('.app-aside .slider').val(5);
-  }
-  else if ( $('body').hasClass('theme--05') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--04');
-            $('.app-aside .slider').val(4);
-  }
-  else if ( $('body').hasClass('theme--04') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--03');
-            $('.app-aside .slider').val(3);
-  }
-  else if ( $('body').hasClass('theme--03') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--02');
-            $('.app-aside .slider').val(2);
-  }
-  else if ( $('body').hasClass('theme--02') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--01');
-            $('.app-aside .slider').val(1);
-  }
-  else if ( $('body').hasClass('theme--01') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--00');
-            $('.app-aside .slider').val(0);
-  }
-  else if ( $('body').hasClass('theme--00') ){
-            appThemeRemoveAll();
-            $('body').addClass('theme--16');
-            $('.app-aside .slider').val(16);
-  }
+  if (currentIndex === -1) currentIndex = 16; // fallback to white if none found
+
+  // Cycle downward: 16→15→...→00→16
+  var nextIndex = currentIndex === 0 ? 16 : currentIndex - 1;
+  appThemeRemoveAll();
+  document.body.classList.add('theme--' + themes[nextIndex]);
+  if (slider) slider.value = nextIndex;
 }
 
 // Toggle grid overlay
 function appGridOverlay() {
-  $('.app-grid-overlay').toggleClass('is--visible');
+  var overlay = document.querySelector('.app-grid-overlay');
+  if (overlay) overlay.classList.toggle('is--visible');
 }
 
 
+
 // Nav scroll-spy
-// Marks contact nav item active when the contact/footer section is in view.
-// Wire additional sections here as blog content is added in Astro.
-$(window).on('load resize scroll', function() {
+// Uses IntersectionObserver instead of polling on scroll/resize/load events.
+// Marks the contact nav item active when the contact section enters the viewport.
+// Wire additional section observers here as blog content is added in Astro.
+(function() {
 
-  var viewportHeight = $(window).height();
-  var appMainScrollTop = $(window).scrollTop();
-  var appMainScrollBottom = appMainScrollTop + viewportHeight;
+  var appNavItems    = document.querySelectorAll('.app-nav .item');
+  var sectionContact = document.querySelector('.app-main .section.contact');
 
-  var appNavItem = $('.app-nav .item');
-  var appNavItemContact = $('.app-nav .item.contact');
+  if (!sectionContact || !appNavItems.length) return;
 
-  var sectionContact = $('.app-main .section.contact');
-  if ( sectionContact.length ) {
-    var sectionContactHeight = sectionContact.height();
-    var sectionContactHeightHalf = sectionContactHeight / 2;
-    var sectionContactTop = sectionContact.offset().top;
-    var sectionContactMiddle = sectionContactTop + sectionContactHeightHalf;
+  var navItemContact = document.querySelector('.app-nav .item.contact');
+  var navItemFirst   = document.querySelector('.app-nav .item:first-child');
 
-    appNavItem.removeClass('is--active');
-
-    if ( sectionContactMiddle < appMainScrollBottom ) {
-      appNavItemContact.addClass('is--active');
-    }
-    else {
-      // Default: first nav item is active when at top
-      $('.app-nav .item:first-child').addClass('is--active');
-    }
+  function setActive(activeItem) {
+    appNavItems.forEach(function(item) { item.classList.remove('is--active'); });
+    if (activeItem) activeItem.classList.add('is--active');
   }
 
-}); // End nav scroll-spy
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        setActive(navItemContact);
+      } else {
+        setActive(navItemFirst); // Default: first item active when at top
+      }
+    });
+  }, {
+    // Fire when the midpoint of the contact section crosses the viewport edge
+    threshold: 0,
+    rootMargin: '0px 0px -50% 0px'
+  });
+
+  observer.observe(sectionContact);
+
+})(); // End nav scroll-spy
