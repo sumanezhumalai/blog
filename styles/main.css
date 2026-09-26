@@ -557,18 +557,18 @@
     position: fixed;
     width: 100%;
   }
-  body.page-not-found .section.intro {
+  body.page-not-found .section {
     min-height: 100vh;
     align-items: center;
   }
-  body.page-not-found .section.intro > .content {
+  body.page-not-found .section > .content {
     grid-column: 1 / -1;
     padding: 0;
   }
-  body.page-not-found .section.intro .text {
+  body.page-not-found .section .text {
     min-height: none;
     display: block;
   }
-  body.page-not-found .section.intro h1 {
+  body.page-not-found .section h1 {
     padding-bottom: 0.5em;
   }
