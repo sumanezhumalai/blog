@@ -1,0 +1,59 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getFormattedDate } from "@utils/date";
+
+interface Props {
+  articles: CollectionEntry<"articles">[];
+}
+
+const { articles } = Astro.props;
+---
+
+<ul class="mb-16 list-none p-0 m-0">
+  {
+    articles.map((article) => {
+      return (
+        <li class="list-none m-0 p-0">
+          <a
+            href={`/articles/${article.id}`}
+            class="article-row group flex flex-col py-4 sm:flex-row sm:items-baseline sm:gap-6"
+          >
+            <time
+              datetime={article.data.publicationDate.toISOString()}
+              class="article-date shrink-0 font-mono text-xs sm:w-28 uppercase tracking-wider"
+            >
+              {getFormattedDate(article.data.publicationDate)}
+            </time>
+            <h2 class="article-title text-lg leading-snug tracking-tight transition-colors">
+              {article.data.title}
+            </h2>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .article-row {
+    border-bottom: 1px solid var(--color--foreground--15);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .article-row:hover {
+    border-bottom-color: var(--color--foreground--50);
+  }
+  .article-date {
+    color: var(--color--foreground--50);
+    font-family: var(--font--mono);
+    line-height: 1;
+  }
+  .article-title {
+    color: var(--color--foreground--100);
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+  .article-row:hover .article-title {
+    color: var(--dev, oklch(78% 0.348 231.09));
+  }
+</style>

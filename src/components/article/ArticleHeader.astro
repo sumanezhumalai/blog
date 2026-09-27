@@ -1,0 +1,32 @@
+---
+import { getFormattedDate } from "@utils/date";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  article: CollectionEntry<"articles">;
+}
+
+const { article } = Astro.props;
+---
+
+<header class="mb-10">
+  <div class="text-muted mb-2 flex items-center gap-3 font-mono text-xs tracking-wider uppercase">
+    <time datetime={article.data.publicationDate.toISOString()}>
+      {getFormattedDate(article.data.publicationDate)}
+    </time>
+    <span>·</span>
+    <span>{article.data.readingTime} min read</span>
+  </div>
+
+  <h1 class="article-title text-3xl leading-tight font-bold tracking-tighter text-pretty sm:text-4xl">
+    {article.data.title}
+  </h1>
+</header>
+
+<style>
+  .article-title {
+    color: var(--color--foreground--100);
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+</style>

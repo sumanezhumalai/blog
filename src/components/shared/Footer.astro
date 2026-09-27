@@ -1,0 +1,54 @@
+---
+// Footer replicating flavien-bonvin layout with Suman's verified details
+const year = new Date().getFullYear();
+---
+
+<footer class="blog-footer mt-10 mb-16 flex h-14 items-center justify-between font-mono text-xs">
+  <p class="text-muted tracking-wider">&copy; {year} Suman Ezhumalai</p>
+  <div class="flex items-center gap-6">
+    <a
+      href="https://github.com/sumanezhumalai"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="footer-link uppercase tracking-widest transition-colors"
+    >
+      GitHub
+    </a>
+    <a
+      href="https://linkedin.com/in/sumanezhumalai"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="footer-link uppercase tracking-widest transition-colors"
+    >
+      LinkedIn
+    </a>
+    <a
+      href="https://sumanezhumalai.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="footer-link uppercase tracking-widest transition-colors"
+    >
+      Website
+    </a>
+    <a
+      href="mailto:sumanezhumalai@gmail.com"
+      class="footer-link uppercase tracking-widest transition-colors"
+    >
+      Email
+    </a>
+  </div>
+</footer>
+
+<style>
+  .blog-footer {
+    border-top: 1px solid var(--color--foreground--15);
+  }
+  .footer-link {
+    color: var(--color--foreground--50);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+  }
+  .footer-link:hover {
+    color: var(--color--foreground--100);
+  }
+</style>

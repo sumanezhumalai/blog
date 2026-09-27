@@ -1,0 +1,31 @@
+---
+import { render } from "astro:content";
+import { getAllArticles } from "@data/articles";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import LayoutContent from "@components/layout/LayoutContent.astro";
+import ArticleHeader from "@components/article/ArticleHeader.astro";
+import ArticleHero from "@components/article/ArticleHero.astro";
+
+export async function getStaticPaths() {
+  const articles = await getAllArticles();
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: article,
+  }));
+}
+
+const article = Astro.props;
+const { Content } = await render(article);
+---
+
+<BaseLayout
+  title={`${article.data.title} — Suman Ezhumalai`}
+  description={article.data.description}
+  activePath="/articles"
+>
+  <ArticleHeader article={article} />
+  <ArticleHero article={article} />
+  <LayoutContent type={article.data.type}>
+    <Content />
+  </LayoutContent>
+</BaseLayout>

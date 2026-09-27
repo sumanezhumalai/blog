@@ -1,0 +1,180 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme inline {
+  --font-sans: var(--font--family, "Suman Sans", system-ui, sans-serif);
+  --font-mono: var(--font--mono, ui-monospace, monospace);
+}
+
+:root {
+  --background: var(--color--background--100, #ffffff);
+  --ink: var(--color--foreground--100, #000000);
+  --muted: var(--color--foreground--50, rgba(0, 0, 0, 0.5));
+  --focus: var(--color--foreground--33, rgba(0, 0, 0, 0.33));
+  --divider: var(--color--foreground--15, rgba(0, 0, 0, 0.15));
+  --dev: oklch(78% 0.348 231.09);
+  --beyond: oklch(75% 0.227 32.82);
+  --accent: oklch(89% 0.05 135);
+  --error: oklch(52% 0.2 15);
+  --success: oklch(48% 0.13 165);
+}
+
+body {
+  --background: var(--color--background--100);
+  --ink: var(--color--foreground--100);
+  --muted: var(--color--foreground--50);
+  --focus: var(--color--foreground--33);
+  --divider: var(--color--foreground--15);
+  color: var(--ink);
+  background-color: var(--background);
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-dev: var(--dev);
+  --color-beyond: var(--beyond);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-ink: var(--ink);
+  --color-divider: var(--divider);
+  --color-focus: var(--focus);
+  --color-error: var(--error);
+  --color-success: var(--success);
+}
+
+/* ==========================================================================
+   Code Blocks & Syntax Highlighting (Flavien Bonvin Match + 17 Themes)
+   ========================================================================== */
+
+.astro-code {
+  background-color: var(--color--background--100) !important;
+  border: 1px solid var(--color--foreground--15) !important;
+  border-radius: 8px !important;
+  padding: 1.125rem 1.25rem !important;
+  margin: 1.75rem 0 !important;
+  overflow-x: auto !important;
+  font-family: var(--font--mono) !important;
+  font-size: 0.84375rem !important;
+  line-height: 1.65 !important;
+}
+
+.astro-code code,
+.astro-code span {
+  font-family: var(--font--mono) !important;
+}
+
+/* Shiki in Dark Themes (theme--00 to theme--07) */
+body.theme--00 .astro-code, body.theme--00 .astro-code span,
+body.theme--01 .astro-code, body.theme--01 .astro-code span,
+body.theme--02 .astro-code, body.theme--02 .astro-code span,
+body.theme--03 .astro-code, body.theme--03 .astro-code span,
+body.theme--04 .astro-code, body.theme--04 .astro-code span,
+body.theme--05 .astro-code, body.theme--05 .astro-code span,
+body.theme--06 .astro-code, body.theme--06 .astro-code span,
+body.theme--07 .astro-code, body.theme--07 .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--color--background--100) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+
+/* Shiki in Light Themes (theme--08 to theme--16) */
+body.theme--08 .astro-code, body.theme--08 .astro-code span,
+body.theme--09 .astro-code, body.theme--09 .astro-code span,
+body.theme--10 .astro-code, body.theme--10 .astro-code span,
+body.theme--11 .astro-code, body.theme--11 .astro-code span,
+body.theme--12 .astro-code, body.theme--12 .astro-code span,
+body.theme--13 .astro-code, body.theme--13 .astro-code span,
+body.theme--14 .astro-code, body.theme--14 .astro-code span,
+body.theme--15 .astro-code, body.theme--15 .astro-code span,
+body.theme--16 .astro-code, body.theme--16 .astro-code span {
+  color: var(--shiki-light, #4c4f69) !important;
+  background-color: var(--color--background--100) !important;
+  font-style: var(--shiki-light-font-style) !important;
+  font-weight: var(--shiki-light-font-weight) !important;
+}
+
+/* ==========================================================================
+   Inline Code (Remove backticks & clean badge styling)
+   ========================================================================== */
+
+.prose code::before,
+.prose code::after,
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"],[class~="not-prose"] *))::after {
+  content: "" !important;
+}
+
+.prose :not(pre) > code {
+  font-family: var(--font--mono) !important;
+  font-size: 0.85em !important;
+  padding: 0.18em 0.4em !important;
+  border-radius: 4px !important;
+  background-color: var(--color--foreground--10) !important;
+  color: var(--color--foreground--100) !important;
+  border: 1px solid var(--color--foreground--15) !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   Prose Content Typography & Link Contrast
+   ========================================================================== */
+
+.prose {
+  color: var(--color--foreground--100);
+  max-width: 100%;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose :where(p, li) {
+  color: var(--color--foreground--100);
+}
+
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--color--foreground--100);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.prose h2 {
+  font-size: 1.625rem;
+  margin-top: 2.75rem;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
+.prose blockquote {
+  border-left: 2px solid var(--color--foreground--25);
+  padding-left: 1.25rem;
+  color: var(--color--foreground--50);
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color--foreground--15);
+  margin: 2.5rem auto;
+  width: 50%;
+}
+
+/* High-contrast links matching Flavien Bonvin */
+.prose a {
+  color: var(--color--foreground--100) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--color--foreground--25) !important;
+  text-underline-offset: 4px !important;
+  transition: text-decoration-color 0.15s ease !important;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--dev, oklch(78% 0.348 231.09)) !important;
+}

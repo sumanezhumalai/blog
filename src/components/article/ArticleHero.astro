@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  article: CollectionEntry<"articles">;
+}
+
+const { article } = Astro.props;
+const isDev = article.data.type !== "BEYOND";
+---
+
+<div
+  class:list={[
+    "article-hero-box mb-8 flex h-32 items-end px-5 py-5 sm:h-48 sm:px-6 sm:py-6",
+    isDev ? "is--dev" : "is--beyond",
+  ]}
+>
+  <div class="flex flex-wrap gap-x-4 gap-y-1">
+    {
+      article.data.tags.map((tag) => (
+        <span class="hero-tag font-mono text-xs tracking-widest uppercase font-medium">
+          {tag}
+        </span>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .article-hero-box.is--dev {
+    background-color: oklch(78% 0.348 231.09);
+  }
+  .article-hero-box.is--beyond {
+    background-color: oklch(75% 0.227 32.82);
+  }
+  .hero-tag {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: var(--font--mono);
+    letter-spacing: 0.15em;
+  }
+</style>

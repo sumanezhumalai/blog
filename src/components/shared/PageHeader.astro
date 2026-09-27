@@ -1,0 +1,28 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "Blogs" } = Astro.props;
+---
+
+<header class="mb-10">
+  <h1 class="page-title text-4xl font-bold tracking-tighter sm:text-5xl mb-3">
+    {title}
+  </h1>
+  {
+    Astro.slots.has("default") && (
+      <p class="text-muted text-sm italic">
+        <slot />
+      </p>
+    )
+  }
+</header>
+
+<style>
+  .page-title {
+    color: var(--color--foreground--100);
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+</style>

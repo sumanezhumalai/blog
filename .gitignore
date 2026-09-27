@@ -1,1 +1,35 @@
+# Build & dependencies
+node_modules/
+dist/
+.astro/
+.output/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# References
 reference/
+
+# Deploy / platform generated
+.wrangler/
+worker-configuration.d.ts
+.vercel/
+.netlify/
+
+# Environment & local
+.env
+.env.*
+!.env.example
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~

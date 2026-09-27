@@ -1,0 +1,17 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import PageHeader from "@components/shared/PageHeader.astro";
+import ArticleList from "@components/article/ArticleList.astro";
+import { getDevArticles } from "@data/articles";
+
+const articles = await getDevArticles();
+---
+
+<BaseLayout
+  title="Blogs — Suman Ezhumalai"
+  description="Personal blog of Suman Ezhumalai — Notes on software engineering, Linux sysadmin, backend architectures, and web development."
+  activePath="/"
+>
+  <PageHeader title="Blogs" />
+  <ArticleList articles={articles} />
+</BaseLayout>

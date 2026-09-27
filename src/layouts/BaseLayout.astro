@@ -1,0 +1,126 @@
+---
+import Header from "@components/shared/Header.astro";
+import AsideThemeSlider from "@components/shared/AsideThemeSlider.astro";
+import NewsletterCard from "@components/shared/NewsletterCard.astro";
+import Footer from "@components/shared/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  activePath?: string;
+  hideNewsletter?: boolean;
+}
+
+const {
+  title = "Suman Ezhumalai — Blog",
+  description = "Personal blog of Suman Ezhumalai — Full Stack & Backend Developer writing about Java, Spring Boot, REST APIs, PostgreSQL, Linux systems, and web performance.",
+  activePath = "/",
+  hideNewsletter = false,
+} = Astro.props;
+---
+
+<!doctype html>
+<!--
+  keyboard shortcuts:
+  b  black (theme--00)
+  w  white (theme--16)
+  s  sunlight (cycle spectrum)
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{title}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={`https://sumanezhumalai.com${Astro.url.pathname}`} />
+
+    <meta name="description" content={description} />
+    <meta name="keywords" content="Suman Ezhumalai, Blog, Backend Developer, Linux, VPS, Security, Full Stack, Java, Spring Boot, Docker, Infrastructure" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Suman Ezhumalai" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={`https://sumanezhumalai.com${Astro.url.pathname}`} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Template Stylesheets -->
+    <link rel="stylesheet" href="/styles/normalize-8.0.1.css" />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/font.css" />
+    <link rel="stylesheet" href="/styles/variables.css" />
+    <link rel="stylesheet" href="/styles/color.css" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/media-queries.css" />
+
+    <!-- Inline script to set dark theme instantly before paint if user prefers dark mode -->
+    <script is:inline>
+      (function() {
+        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        document.documentElement.classList.add(isTouch ? 'touchevents' : 'no-touchevents');
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.dataset.theme = 'theme--00';
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="theme--16">
+    <div class="blog-page-container">
+      <Header activePath={activePath} />
+
+      <main class="blog-main-content">
+        <slot />
+        {!hideNewsletter && <NewsletterCard />}
+        <Footer />
+      </main>
+    </div>
+
+    <AsideThemeSlider />
+
+    <script src="/scripts/script.js" is:inline></script>
+  </body>
+</html>
+
+<style is:global>
+  body {
+    overflow-x: hidden;
+  }
+
+  .blog-page-container {
+    max-width: 48rem; /* 768px - exact match of max-w-3xl in flavien-bonvin */
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (min-width: 1024px) {
+    .blog-page-container {
+      padding: 0;
+    }
+  }
+
+  .blog-main-content {
+    flex: 1 0 auto;
+    width: 100%;
+  }
+
+  /* Reset any residual main container margins from legacy portfolio */
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+</style>

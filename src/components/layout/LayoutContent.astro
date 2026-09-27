@@ -1,0 +1,23 @@
+---
+interface Props {
+  type?: string;
+}
+
+const { type = "DEV" } = Astro.props;
+---
+
+<article
+  class:list={[
+    "prose mb-10 w-full max-w-none",
+    "prose-headings:font-bold prose-headings:tracking-tight",
+    "prose-h2:text-2xl prose-h3:text-xl prose-h4:text-lg",
+    "prose-a:underline-offset-4",
+    "prose-strong:font-semibold",
+    "prose-code:font-mono sm:prose-code:text-wrap",
+    "prose-blockquote:font-medium",
+    "prose-hr:mx-auto prose-hr:w-1/2",
+    type === "DEV" ? "is--dev" : "is--beyond",
+  ]}
+>
+  <slot />
+</article>

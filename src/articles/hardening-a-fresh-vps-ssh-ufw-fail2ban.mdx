@@ -1,0 +1,551 @@
+---
+title: "Hardening a Fresh VPS: SSH, UFW, and Fail2ban"
+description: "A practical, no-nonsense baseline for securing a brand-new Ubuntu VPS — dedicated admin user, SSH key hardening, a UFW firewall, and Fail2ban — before you install anything else."
+publishDate: 2026-09-27
+tags: ["linux", "security", "sysadmin", "ubuntu", "vps"]
+draft: false
+---
+
+Spinning up a free-tier or budget VPS is the easy part. The instance boots with a default cloud-init user, root login enabled "just in case," and no firewall at all. Left like that for more than a few hours, it *will* get scanned, and it *will* start seeing SSH login attempts from bots.
+
+This post walks through the baseline I apply to every fresh Ubuntu server before installing a single application: a dedicated admin account, SSH key-only access, a default-deny firewall with UFW, and Fail2ban watching the front door. Nothing exotic — just a conservative, repeatable checklist.
+
+It assumes a fresh Ubuntu 24.04 LTS instance (the steps apply equally well to Debian-based distros in general) reachable over SSH with a cloud-provider-issued key pair.
+
+## What we're building
+
+By the end of this guide, the server looks like this:
+
+```text
+                    Internet
+                       |
+                       v
+              Cloud provider firewall
+              (security group / NSG)
+                       |
+                       v
+                      UFW
+             +---------+---------+
+             |                   |
+          TCP 22             TCP 80/443
+             |                   |
+             v                   v
+            SSH              Web services
+             |
+             v
+          Fail2ban
+             |
+             v
+        admin user
+             |
+            sudo
+             |
+             v
+            root
+```
+
+Two independent layers — the cloud provider's network firewall and UFW on the host — plus an account structure where nobody logs in as root directly.
+
+## Prerequisites
+
+- A freshly created VPS running Ubuntu 24.04 (or similar), reachable over SSH with the provider's default key pair.
+- The provider's default user (commonly `ubuntu`, `admin`, or `root` depending on the image) with sudo access.
+- An SSH key pair on your local machine. If you don't have one yet:
+
+```bash
+ssh-keygen -t ed25519 -C "your-email@example.com"
+```
+
+- Your server's public IP address. Throughout this post it's written as `YOUR_SERVER_IP` — swap in the real thing.
+
+> **Never copy your private key onto the server.** It stays on your local machine, full stop. Only the *public* key ever gets uploaded.
+
+## 1. Confirm you can actually reach the box
+
+Before touching anything, connect once and sanity-check what you're working with.
+
+```bash
+ssh -i ~/.ssh/your_key ubuntu@YOUR_SERVER_IP
+```
+
+Once connected:
+
+```bash
+hostname
+whoami
+uname -m
+lsb_release -ds
+```
+
+You should see your hostname, the default user, the CPU architecture (`x86_64` or `aarch64`), and the Ubuntu version. Also worth checking what sudo access the default user actually has:
+
+```bash
+sudo -n whoami
+sudo -l
+```
+
+On most cloud images this returns something like:
+
+```text
+User ubuntu may run the following commands on this host:
+    (ALL : ALL) ALL
+```
+
+Good — that's the access we'll use to build everything else. There's no root password to hunt down here; the chain of trust is **SSH key → default user → sudo → root**, and it stays that way.
+
+## 2. Create a dedicated admin user
+
+Running everything as the provider's default account works, but a named personal account is cleaner to audit and easier to lock down later. From your initial session:
+
+```bash
+sudo adduser youradmin
+```
+
+Enter a strong password when prompted (the optional identity fields — full name, room number, etc. — can be left blank). Then grant sudo:
+
+```bash
+sudo usermod -aG sudo youradmin
+```
+
+Confirm it took:
+
+```bash
+id youradmin
+```
+
+You're looking for `sudo` in the group list:
+
+```text
+uid=1001(youradmin) gid=1001(youradmin) groups=1001(youradmin),27(sudo)
+```
+
+## 3. Give the new user SSH key access
+
+Reuse the key that's already authorized for the default account rather than generating a new one — it's already trusted and already on your local machine.
+
+```bash
+sudo install -d -m 700 -o youradmin -g youradmin /home/youradmin/.ssh
+sudo cp /home/ubuntu/.ssh/authorized_keys /home/youradmin/.ssh/authorized_keys
+sudo chown youradmin:youradmin /home/youradmin/.ssh/authorized_keys
+sudo chmod 600 /home/youradmin/.ssh/authorized_keys
+```
+
+Verify ownership and permissions landed correctly:
+
+```bash
+sudo stat -c '%U:%G %a %n' /home/youradmin/.ssh/authorized_keys
+```
+
+Expected:
+
+```text
+youradmin:youradmin 600 /home/youradmin/.ssh/authorized_keys
+```
+
+## 4. Test the new login *before* touching the firewall
+
+This is the step people skip, and the one that saves you from locking yourself out. **Keep your first SSH session open** and, from a second terminal, open a brand-new connection as the new user:
+
+```bash
+ssh -i ~/.ssh/your_key youradmin@YOUR_SERVER_IP
+```
+
+Confirm it actually works end to end:
+
+```bash
+whoami
+hostname
+sudo whoami
+groups
+```
+
+You want to see the new username, the right hostname, `root` from the sudo check, and `sudo` in your group list. Only once this succeeds should you move on — if anything below breaks your firewall or SSH config, you still have a known-good path back in.
+
+> **Why this matters:** every firewall or SSH change from here on is done with two sessions open — the original and a fresh test connection — so a mistake is recoverable instead of a lockout.
+
+## 5. Update the system
+
+Routine, but do it before installing anything else:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+Then check whether a reboot is pending:
+
+```bash
+if [ -f /var/run/reboot-required ]; then
+  echo "REBOOT REQUIRED"
+  cat /var/run/reboot-required.pkgs 2>/dev/null
+else
+  echo "NO REBOOT REQUIRED"
+fi
+```
+
+## 6. Install and configure UFW
+
+UFW (Uncomplicated Firewall) is a friendly front end over `iptables`/`nftables`. Install it:
+
+```bash
+sudo apt install ufw -y
+```
+
+If the install removes `iptables-persistent` / `netfilter-persistent`, that's expected — you don't want two firewall managers fighting over the same rules. UFW is now the single source of truth.
+
+### Check the starting state
+
+```bash
+sudo ufw status verbose
+```
+
+Freshly installed, it should report:
+
+```text
+Status: inactive
+```
+
+That's fine — rules can be staged while UFW is inactive, and nothing takes effect until you explicitly enable it.
+
+### Set sane defaults
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+```
+
+This is the core of the policy: **nothing gets in unless you explicitly allow it; everything the server initiates on its own — package downloads, DNS lookups, NTP, API calls — is still allowed out.**
+
+### Allow only what you actually need
+
+For a general-purpose web-facing server, that's SSH plus HTTP/HTTPS:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+Double-check for accidental duplicates before enabling:
+
+```bash
+sudo ufw show added
+```
+
+You want to see exactly this, no repeats:
+
+```text
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+```
+
+| Port | Protocol | Purpose                 | Status  |
+|-----:|----------|--------------------------|---------|
+| 22   | TCP      | SSH administration       | Allowed |
+| 80   | TCP      | HTTP / future web apps   | Allowed |
+| 443  | TCP      | HTTPS / future web apps  | Allowed |
+| —    | any      | everything else          | Denied  |
+
+### A quick word on "essential" ports
+
+It's tempting to open DNS (53) or NTP (123) "just in case." Don't. A normal VM is a DNS/NTP **client**, not a server — those lookups are outbound, and outbound is already allowed by default. The same goes for databases: don't open 3306 (MySQL), 5432 (Postgres), 6379 (Redis), or 27017 (MongoDB) to the world. If an app needs a database, bind it to `localhost` or a private network instead:
+
+```text
+Application  --->  localhost / private network  --->  Database
+```
+
+not:
+
+```text
+Internet  --->  Database
+```
+
+### Enable it
+
+With SSH confirmed allowed and a second session ready as a safety net:
+
+```bash
+sudo systemctl is-active ssh          # should print: active
+sudo ss -lntp | grep ':22'            # confirm sshd is listening
+sudo ufw enable
+```
+
+Type `y` at the prompt warning about disrupting existing connections, then confirm:
+
+```bash
+sudo ufw status verbose
+```
+
+```text
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+
+22/tcp                     ALLOW IN    Anywhere
+80/tcp                     ALLOW IN    Anywhere
+443/tcp                    ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+80/tcp (v6)                ALLOW IN    Anywhere (v6)
+443/tcp (v6)               ALLOW IN    Anywhere (v6)
+```
+
+### Remember: your cloud provider has a firewall too
+
+UFW is only half the picture on most cloud platforms:
+
+```text
+Internet
+   |
+   v
+Cloud security group / NSG / security list
+   |
+   v
+Instance
+   |
+   v
+UFW
+   |
+   v
+Application
+```
+
+A port has to be open at **both** layers before traffic reaches your app — genuinely useful defense-in-depth, but also a common source of "why can't I connect" confusion. Check your provider's console if a port that's allowed in UFW still doesn't respond.
+
+## 7. Harden SSH
+
+Check what's currently in effect:
+
+```bash
+sudo sshd -T | grep -E '^(port|permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication)'
+```
+
+Rather than editing `/etc/ssh/sshd_config` directly, drop a small override file in — it's cleaner to manage and survives package updates without merge conflicts:
+
+```bash
+sudo nano /etc/ssh/sshd_config.d/99-hardening.conf
+```
+
+```text
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+```
+
+That's the whole policy: no direct root login, no password auth, no keyboard-interactive fallback, keys only.
+
+**Note on the port:** there's no need to move SSH off port 22. Port-hopping mostly just adds friction for you, not attackers running full-range scans. The protections that actually matter are key-only auth, no root login, the firewall, and Fail2ban — all of which work regardless of port number.
+
+### Validate before you reload — always
+
+```bash
+sudo sshd -t
+```
+
+No output means the syntax is valid. **Never reload or restart `ssh` after an edit until this passes.** Then check the effective config again:
+
+```bash
+sudo sshd -T | grep -E '^(port|permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication)'
+```
+
+Target output:
+
+```text
+port 22
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+```
+
+### Apply it — with `reload`, not `restart`
+
+```bash
+sudo systemctl reload ssh
+sudo systemctl is-active ssh
+```
+
+`reload` re-reads the config without killing your current connections — much safer than `restart` while you're working remotely.
+
+### Verify with a genuinely fresh connection
+
+Open a brand-new terminal (don't reuse an existing session) and log back in:
+
+```bash
+ssh -i ~/.ssh/your_key youradmin@YOUR_SERVER_IP
+whoami
+hostname
+sudo -n whoami
+```
+
+If that works, the policy is live:
+
+```text
+SSH key auth     → allowed
+SSH password     → disabled
+Direct root SSH  → disabled
+```
+
+From here on, administration always flows through `youradmin → sudo → root` — never a direct root session.
+
+## 8. Install Fail2ban
+
+UFW decides *which ports* are reachable. Fail2ban decides *what happens when someone abuses a port you left open* — specifically, it watches auth logs and temporarily bans IPs after repeated failures.
+
+```bash
+sudo apt install -y fail2ban
+sudo systemctl enable --now fail2ban
+sudo systemctl is-active fail2ban
+```
+
+The `sshd` jail is enabled out of the box on most distributions. Check it:
+
+```bash
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+```
+
+A server that's been up for a while and exposed to the internet will typically show something like:
+
+```text
+Status for the jail: sshd
+|- Filter
+|  |- Currently failed: 0
+|  |- Total failed:     5
+|  `- Journal matches:  _SYSTEMD_UNIT=sshd.service + _COMM=sshd
+`- Actions
+   |- Currently banned: 1
+   |- Total banned:     1
+   `- Banned IP list:   203.0.113.10
+```
+
+That's Fail2ban doing exactly its job — automated credential-stuffing bots get a temporary timeout.
+
+### UFW and Fail2ban aren't interchangeable
+
+```text
+Internet
+   |
+   v
+UFW
+   |
+   +---- closed ports  → blocked outright
+   |
+   +---- SSH :22
+          |
+          v
+        sshd
+          |
+          v
+       Fail2ban
+          |
+          +---- repeated failures → temporary ban
+```
+
+UFW is a static gate; Fail2ban is a dynamic response to behavior on the ports you've left open. Don't bother enabling jails for services you haven't installed (a web-server jail with no web server running does nothing useful) — add jails as you add exposed services, and ask yourself for each one:
+
+1. Is it actually internet-facing?
+2. Is there a suitable Fail2ban filter for it?
+3. Would it meaningfully benefit from banning, or is there a safer design that avoids exposure entirely?
+
+## 9. Verify the whole stack at once
+
+A single script to sanity-check everything covered above:
+
+```bash
+echo '=== UFW ==='
+sudo ufw status verbose
+
+echo
+echo '=== SSH SERVICE ==='
+sudo systemctl is-active ssh
+
+echo
+echo '=== SSH LISTENING ==='
+sudo ss -lntp | grep ':22' || true
+
+echo
+echo '=== SSH HARDENING ==='
+sudo sshd -T | grep -E '^(port|permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication)'
+
+echo
+echo '=== FAIL2BAN SERVICE ==='
+sudo systemctl is-active fail2ban
+
+echo
+echo '=== FAIL2BAN JAILS ==='
+sudo fail2ban-client status
+```
+
+Run this any time you want a quick read on the server's security posture — after updates, after adding a service, or just periodically.
+
+## 10. Ongoing maintenance
+
+A short checklist worth running regularly (a cron job or a calendar reminder both work):
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo ufw status verbose
+sudo systemctl is-active ssh
+sudo systemctl is-active fail2ban
+sudo fail2ban-client status sshd
+```
+
+Useful commands for day-to-day management, gathered in one place:
+
+**Firewall**
+
+```bash
+sudo ufw allow 8080/tcp        # open a new port
+sudo ufw status numbered       # list rules with index numbers
+sudo ufw delete 4              # delete rule #4 (check the number first!)
+sudo ufw allow from <TRUSTED_IP> to any port 22 proto tcp   # restrict SSH to one IP
+```
+
+**Fail2ban**
+
+```bash
+sudo fail2ban-client status sshd
+sudo fail2ban-client set sshd banip <IP>
+sudo fail2ban-client set sshd unbanip <IP>
+sudo fail2ban-client reload
+```
+
+**Logs**
+
+```bash
+sudo journalctl -u ssh --no-pager -n 100
+sudo journalctl -u fail2ban --no-pager -n 100
+```
+
+## Ground rules worth keeping in your head
+
+A short list of things *not* to do, because each one has bitten someone at 2am:
+
+- **Never enable UFW without confirming SSH is allowed first.** Allow → verify → enable → test with a fresh connection, in that order, every time.
+- **Never copy your private key to the server.** It lives on your client machine only.
+- **Never restart `sshd` after an edit without running `sshd -t` first.** A syntax error plus a restart is how people get locked out.
+- **Never remove the SSH rule from UFW while connected remotely**, unless you have a separately verified way back in (out-of-band console access, a second admin account, etc.).
+- **Don't run two firewall managers on the same host.** Pick one (this guide uses UFW) and stick with it.
+- **Don't open a port just because it's "standard."** Open it because a service you're actually running needs it.
+
+## The finished baseline
+
+```text
+Security properties
+--------------------------------------------
+SSH key authentication             ENABLED
+SSH password authentication        DISABLED
+Keyboard-interactive auth          DISABLED
+Direct root SSH                    DISABLED
+UFW                                ACTIVE
+UFW default incoming                DENY
+UFW default outgoing                ALLOW
+SSH 22/tcp                          ALLOWED
+HTTP 80/tcp                         ALLOWED
+HTTPS 443/tcp                       ALLOWED
+Fail2ban sshd jail                  ACTIVE
+```
+
+That's the baseline I preserve before installing anything else — a reverse proxy, a database, a container runtime, whatever the box is actually for. It's deliberately unglamorous: a named admin account, keys instead of passwords, a firewall that denies by default, and a jail watching the one port left open to the world. Nothing here replaces good judgment about what you expose later, but it closes off the obvious, automated attacks from day one.

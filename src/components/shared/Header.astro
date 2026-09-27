@@ -1,0 +1,116 @@
+---
+interface Props {
+  activePath?: string;
+}
+
+const { activePath = "/" } = Astro.props;
+---
+
+<header class="blog-header">
+  <div class="header-content">
+    <div class="brand">
+      <a href="/" class="brand-link" aria-label="Suman Ezhumalai Home">
+        <h3 class="brand-title">
+          <span>S</span><span>u</span><span>m</span><span>a</span><span>n</span><span>
+          </span><span>E</span><span>z</span><span>h</span><span>u</span><span>m</span><span>a</span><span>l</span><span>a</span><span>i</span>
+        </h3>
+      </a>
+    </div>
+
+    <nav class="actions" aria-label="Main Navigation">
+      <a
+        href="/"
+        class:list={["header-link", (activePath === "/" || activePath === "/articles") && "is--active"]}
+      >
+        Blogs
+      </a>
+      <a
+        href="https://sumanezhumalai.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="header-link"
+      >
+        About
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .blog-header {
+    width: 100%;
+    border-bottom: 1px solid var(--color--foreground--15);
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .header-content {
+    height: 3.5rem; /* 56px - exact height from flavien-bonvin */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .brand-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .brand-title {
+    margin-left: var(--font--margin-left, -0.07em);
+    font-size: var(--font--size-medium, 22px);
+    line-height: 1;
+    font-weight: 500;
+  }
+
+  .brand-title span:nth-child(n+2) {
+    margin-left: -0.035em;
+    opacity: 0;
+    transition: margin-left 0.3s ease-in, opacity 0.3s ease-in;
+  }
+
+  .brand:hover .brand-title span:nth-child(n+2) {
+    margin-left: 0;
+    opacity: 1;
+    transition: margin-left 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  /* Stagger delays from clean template */
+  .brand:hover .brand-title span:nth-child(2)  { transition-delay: 0.00s; }
+  .brand:hover .brand-title span:nth-child(3)  { transition-delay: 0.01s; }
+  .brand:hover .brand-title span:nth-child(4)  { transition-delay: 0.02s; }
+  .brand:hover .brand-title span:nth-child(5)  { transition-delay: 0.03s; }
+  .brand:hover .brand-title span:nth-child(6)  { transition-delay: 0.04s; }
+  .brand:hover .brand-title span:nth-child(7)  { transition-delay: 0.05s; }
+  .brand:hover .brand-title span:nth-child(8)  { transition-delay: 0.06s; }
+  .brand:hover .brand-title span:nth-child(9)  { transition-delay: 0.07s; }
+  .brand:hover .brand-title span:nth-child(10) { transition-delay: 0.08s; }
+  .brand:hover .brand-title span:nth-child(11) { transition-delay: 0.09s; }
+  .brand:hover .brand-title span:nth-child(12) { transition-delay: 0.10s; }
+  .brand:hover .brand-title span:nth-child(13) { transition-delay: 0.11s; }
+  .brand:hover .brand-title span:nth-child(14) { transition-delay: 0.12s; }
+  .brand:hover .brand-title span:nth-child(15) { transition-delay: 0.13s; }
+  .brand:hover .brand-title span:nth-child(16) { transition-delay: 0.14s; }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .header-link {
+    font-family: var(--font--mono);
+    font-size: 0.8125rem;
+    color: var(--color--foreground--50);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.15s ease;
+  }
+
+  .header-link:hover,
+  .header-link.is--active {
+    color: var(--color--foreground--100);
+  }
+</style>
