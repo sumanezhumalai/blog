@@ -41,7 +41,6 @@
     pointer-events: none;
   }
   body.is--loading .app-header,
-  body.is--loading .app-nav,
   body.is--loading .app-aside .options .option {
     transition: opacity 1s cubic-bezier(0.33, 0, 0.2, 1) 0.75s;
   }
@@ -61,7 +60,6 @@
     opacity: 1;
   }
   body.cover--is--visible .app-header,
-  body.cover--is--visible .app-nav,
   body.cover--is--visible .app-aside .options .option {
     opacity: 0;
   }
@@ -96,7 +94,6 @@
     line-height: 1;
   }
   .app-header .brand h3 span:nth-child(n+2) {
-    margin-left: var(--font--margin-left);
     margin-left: -0.035em;
     opacity: 0;
     transition: margin-left 0.3s ease-in, opacity 0.3s ease-in;
@@ -144,90 +141,7 @@
     align-items: center;
     gap: 16px;
   }
-  .app-header .navigation {
-    display: none;
-    padding: 12px;
-    margin-right: -12px;
-    border-radius: 24px;
-  }
-  .app-header .navigation:hover {
-    cursor: pointer;
-  }
-  .app-header .navigation .icon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .app-header .navigation .line {
-    position: absolute;
-  }
-  .app-header .navigation .line .content {
-    width: 24px;
-    height: 2px;
-    background-color: var(--color--foreground--100);
-  }
-  .app-header .navigation .line:nth-child(1) {
-    transform: rotate(0);
-    transition: transform 0.1s ease-in;
-  }
-  .app-header .navigation .line:nth-child(2) {
-    transform: rotate(0);
-    transition: transform 0.1s ease-in;
-  }
-  .app-header .navigation .line:nth-child(1) .content {
-    transform: translateY(-4px);
-    transition: transform 0.1s ease-out 0.1s;
-  }
-  .app-header .navigation .line:nth-child(2) .content {
-    transform: translateY(4px);
-    transition: transform 0.1s ease-out 0.1s;
-  }
-  body.mobile-nav--is--visible .app-header .navigation .line:nth-child(1)  {
-    transform: rotate(45deg);
-    transition: transform 0.1s ease-out 0.1s;
-  }
-  body.mobile-nav--is--visible .app-header .navigation .line:nth-child(2)  {
-    transform: rotate(-45deg);
-    transition: transform 0.1s ease-out 0.1s;
-  }
-  body.mobile-nav--is--visible .app-header .navigation .line:nth-child(1) .content  {
-    transform: translateY(0);
-    transition: transform 0.1s ease-in;
-  }
-  body.mobile-nav--is--visible .app-header .navigation .line:nth-child(2) .content  {
-    transform: translateY(0);
-    transition: transform 0.1s ease-in;
-  }
-  
-  
-  /* App nav
-  ----------------------------------------------------------------------------- */
-  
-  .app-nav {
-    position: fixed;
-    top: var(--grid--app-xheight);
-    left: var(--grid--app-margin);
-    z-index: 100;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  .app-nav .content:hover {
-    cursor: pointer;
-  }
-  .app-nav .item {
-    font-size: var(--font--size-regular);
-    padding: 1px 0;
-    color: var(--color--foreground--33);
-  }
-  .app-nav .item:hover {
-    color: var(--color--foreground--100);
-    cursor: pointer;
-  }
-  .app-nav .item.is--active {
-    color: var(--color--foreground--100);
-  }
+
   
   
   /* App aside

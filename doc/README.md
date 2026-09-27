@@ -10,8 +10,8 @@ To strip away all legacy portfolio content, personal credentials, and unused med
 - Floating interactive theme spectrum slider (`app-aside`)
 - 12-column grid overlay developer tool
 - Letter-staggered typography hover interactions
-- Responsive desktop & mobile navigation system
 - Repurposed minimal text-only footer (`section.contact`)
+- Pure vanilla JS interaction engine (zero dependencies)
 
 ---
 
@@ -32,17 +32,12 @@ To strip away all legacy portfolio content, personal credentials, and unused med
   - Keyboard shortcuts: `g` or `;`.
 
 ### 🔤 Header & Brand Typography (`styles/main.css`)
-- **Header (`app-header`)**: Fixed top bar with staggered letter hover animation (`<span>B</span><span>l</span><span>o</span><span>g</span>`).
+- **Header (`app-header`)**: Fixed top bar with staggered letter hover animation across full brand name (`<span>S</span><span>u</span>...`).
 - **Font System (`styles/font.css`)**: Preserves `@font-face` for `Roobert-Medium.woff2` stored in `assets/font/`.
-
-### 🧭 Navigation (`app-nav`)
-- **Desktop Navigation**: Fixed position on the left, displaying active section indicator.
-- **Mobile Navigation**: Animated full-screen overlay menu with stagger-animated links.
-- **Blog Section Labels**: Updated to `Intro`, `Posts`, `Topics`, `About`, and `Contact`.
 
 ### ✉️ Repurposed Footer (`section.contact`)
 - Repurposed from portfolio contact section to a clean, text-only blog footer.
-- Retains live availability status indicator (`.look` pulse dot), tagline, and email link. Image column removed for a lightweight footprint.
+- Retains live availability status indicator (`.look` pulse dot), tagline, direct email, and phone link.
 
 ### 🌅 Optional Splash Cover (`<!-- COVER SECTION -->`)
 - Commented out in `index.html` as a built-in template feature.
@@ -54,11 +49,12 @@ To strip away all legacy portfolio content, personal credentials, and unused med
 
 | Category | Removed Items | Reason |
 | :--- | :--- | :--- |
+| **Navbar & Menu** | `<nav class="app-nav">`, `.option.navigation` (hamburger), all mobile nav overlays & scroll-spy | Cleaned completely per design request to focus layout on blog content. |
 | **HTML Sections** | `intro`, `work`, `values`, `background`, `references`, `about` | Legacy portfolio content replaced by placeholder comments for blog components. |
 | **Media Assets** | `assets/app/*` (webp/svgs), `assets/svg/*` | Deleted unused project thumbnails, portfolio icons, and background images. |
-| **Stylesheets** | `about.css` → renamed to `main.css` | Stripped all section-specific CSS and dead code (reduced from 1,017 lines to 575 lines). |
-| **Media Queries** | Section-specific breakpoint rules | Refactored `media-queries.css` (reduced from 254 lines to 165 lines). |
-| **Scripts** | Portfolio scroll handlers (`scrollToIntro`, `scrollToWork`, tab switchers) | Cleaned `scripts/script.js` (reduced from 599 lines to 353 lines). |
+| **Stylesheets** | `about.css` → renamed to `main.css` | Stripped all section-specific CSS and dead code (reduced from 1,017 lines to 495 lines). |
+| **Media Queries** | Section-specific rules, empty queries, mobile nav animations | Refactored `media-queries.css` (reduced to ~90 lines). |
+| **Scripts** | jQuery, Easing, Modernizr, portfolio scroll handlers, nav scroll-spy | Replaced with pure vanilla JS `scripts/script.js` (213 lines). |
 
 ---
 
@@ -70,13 +66,11 @@ To strip away all legacy portfolio content, personal credentials, and unused med
 │   └── font/
 │       └── Roobert-Medium.woff2   # Primary font asset
 ├── doc/
+│   ├── BRANCHES.md                # Git branch and remote reference
 │   └── README.md                  # This documentation file
 ├── index.html                     # Refactored minimal starter HTML
 ├── scripts/
-│   ├── jquery-3.7.1.min.js        # Static mode dependency (to be converted in Astro)
-│   ├── jquery-easing-1.4.1.js     # Easing animations
-│   ├── modernizr.js               # Touch detection helper
-│   └── script.js                  # Cleaned UI interaction & theme logic
+│   └── script.js                  # Pure vanilla JS interaction & theme engine
 └── styles/
     ├── color.css                  # 17-theme color definitions (Sacred)
     ├── font.css                   # Font face & typography rules
@@ -97,12 +91,10 @@ The template is now ready for the next development phase:
 1. **Astro Initialization**:
    - Initialize Astro inside the repository directory (`npx create-astro@latest ./`).
 2. **Component Migration**:
-   - Convert `app-header`, `app-nav`, `app-aside` (Theme Slider), `app-grid-overlay`, and `section.contact` (Footer) into reusable Astro components (`src/components/`).
-3. **Vanilla JS Conversion**:
-   - Convert jQuery handlers in `script.js` to vanilla TypeScript/JavaScript interactive Astro Islands (`client:load`).
-4. **MDX Blog Content**:
+   - Convert `app-header`, `app-aside` (Theme Slider), `app-grid-overlay`, and `section.contact` (Footer) into reusable Astro components (`src/components/`).
+3. **MDX Blog Content**:
    - Configure Astro Content Collections (`src/content/blog/`) for writing articles using MDX with custom UI components.
-5. **Asset Relocation**:
+4. **Asset Relocation**:
    - Move font files and static assets to Astro's `public/` directory.
 
 ---

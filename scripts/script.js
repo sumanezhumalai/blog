@@ -22,10 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('touchstart', function() {}, { passive: true });
   });
 
-  // Set the copyright to the current year in local time
-  var currentYear = new Date().getFullYear();
-  var yearEl = document.querySelector('.copyright .year');
-  if (yearEl) yearEl.textContent = currentYear;
 
   // Detect if user prefers dark mode and apply it
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -59,46 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
     removeLoadingClassDelay();
   }
 
-  // Mobile nav trigger
-  var navToggle = document.querySelector('.app-header .navigation');
-  if (navToggle) {
-    navToggle.addEventListener('click', function() {
-      if (document.body.classList.contains('mobile-nav--is--visible')) {
-        closeMobileNav();
-      } else {
-        openMobileNav();
-      }
-    });
-  }
-
-  // Close mobile nav when any nav item is clicked
-  document.querySelectorAll('.app-nav .item').forEach(function(item) {
-    item.addEventListener('click', function() {
-      if (document.body.classList.contains('mobile-nav--is--visible')) {
-        closeMobileNav();
-      }
-    });
-  });
-
-  // Scroll to Contact from app nav
-  var navContactItem = document.querySelector('.app-nav .item.contact');
-  if (navContactItem) {
-    navContactItem.addEventListener('click', function() {
-      if (document.body.classList.contains('mobile-nav--is--visible')) {
-        // Wait for nav close animation before scrolling
-        window.setTimeout(scrollToContact, 300);
-      } else {
-        scrollToContact();
-      }
-    });
-  }
-
-  // Auto hide mobile nav on window resize to prevent visibility bugs
-  window.addEventListener('resize', function() {
-    if (document.body.classList.contains('mobile-nav--is--visible')) {
-      closeMobileNav();
-    }
-  });
 
   // Theme slider — hover to expand (non-touch devices only)
   if (!isTouch) {
@@ -149,48 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Scroll to Contact from inline text links within sections
-  document.querySelectorAll('.section a.contact').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      scrollToContact();
-    });
-  });
 
-  // Nav scroll-spy
-  // Uses IntersectionObserver instead of polling on scroll/resize/load events.
-  // Marks the contact nav item active when the contact section enters the viewport.
-  // Wire additional section observers here as blog content is added in Astro.
-  (function() {
-    var appNavItems    = document.querySelectorAll('.app-nav .item');
-    var sectionContact = document.querySelector('.app-main .section.contact');
-
-    if (!sectionContact || !appNavItems.length) return;
-
-    var navItemContact = document.querySelector('.app-nav .item.contact');
-    var navItemFirst   = document.querySelector('.app-nav .item:first-child');
-
-    function setActive(activeItem) {
-      appNavItems.forEach(function(item) { item.classList.remove('is--active'); });
-      if (activeItem) activeItem.classList.add('is--active');
-    }
-
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          setActive(navItemContact);
-        } else {
-          setActive(navItemFirst); // Default: first item active when at top
-        }
-      });
-    }, {
-      // Fire when the midpoint of the contact section crosses the viewport edge
-      threshold: 0,
-      rootMargin: '0px 0px -50% 0px'
-    });
-
-    observer.observe(sectionContact);
-  })();
 
 }); // End DOMContentLoaded
 
@@ -240,23 +155,6 @@ function scrollToContact() {
   }
 }
 
-// Open mobile nav
-function openMobileNav() {
-  document.body.classList.add('mobile-nav--is--transitioning');
-  // 1ms delay allows the browser to paint the transitioning class before adding visible,
-  // which triggers the CSS opacity transition correctly.
-  window.setTimeout(function() {
-    document.body.classList.add('mobile-nav--is--visible');
-  }, 1);
-}
-
-// Close mobile nav
-function closeMobileNav() {
-  document.body.classList.remove('mobile-nav--is--visible');
-  window.setTimeout(function() {
-    document.body.classList.remove('mobile-nav--is--transitioning');
-  }, 500);
-}
 
 // Remove all theme-- classes from body
 function appThemeRemoveAll() {
@@ -312,7 +210,3 @@ function appGridOverlay() {
   var overlay = document.querySelector('.app-grid-overlay');
   if (overlay) overlay.classList.toggle('is--visible');
 }
-
-
-
-

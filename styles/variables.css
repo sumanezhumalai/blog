@@ -28,7 +28,6 @@
   --grid--app-columns-2: repeat(2, [col-start] 1fr);
   --grid--app-columns-1: repeat(1, [col-start] 1fr);
   --grid--app-gutter: 20px;
-  --grid--app-xheight: 220px;
 }
 
 :root {
