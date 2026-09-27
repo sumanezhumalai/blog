@@ -97,16 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Grid overlay toggle button
-  var gridOption = document.querySelector('.option.grid');
-  if (gridOption) {
-    gridOption.addEventListener('click', function() {
-      appGridOverlay();
-    });
-  }
-
-
-
 }); // End DOMContentLoaded
 
 
@@ -116,16 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('keydown', function(key) {
 
   switch(parseInt(key.which, 10)) {
-
-    // 'g' key — toggle grid overlay
-    case 71:
-      appGridOverlay();
-      break;
-
-    // ';' key — toggle grid overlay
-    case 186:
-      appGridOverlay();
-      break;
 
     // 'w' key — toggle white/black theme
     case 87:
@@ -203,10 +183,4 @@ function appThemeSpectrum() {
   appThemeRemoveAll();
   document.body.classList.add('theme--' + themes[nextIndex]);
   if (slider) slider.value = nextIndex;
-}
-
-// Toggle grid overlay
-function appGridOverlay() {
-  var overlay = document.querySelector('.app-grid-overlay');
-  if (overlay) overlay.classList.toggle('is--visible');
 }

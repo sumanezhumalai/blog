@@ -26,9 +26,6 @@
     --font--size-large: clamp(22px, 2.74vw, 2.74vw);
     --font--size-medium: 22px;
   }
-  .app-grid-overlay .column:nth-child(n+7) {
-    display: none;
-  }
   .app-header > .content {
     padding: 8px 0;
   }
@@ -62,9 +59,6 @@
   body {
     --grid--app-columns: var(--grid--app-columns-3);
   }
-  .app-grid-overlay .column:nth-child(n+4) {
-    display: none;
-  }
   .section.contact > .content {
     grid-template-columns: var(--grid--app-columns);
   }
@@ -79,9 +73,6 @@
     --grid--app-gutter: 16px;
     --font--size-huge: clamp(32px, 7.5vw, 7.5vw);
     --font--size-large: clamp(22px, 2.64vw, 2.64vw);
-  }
-  .app-grid-overlay .column:nth-child(n+3) {
-    display: none;
   }
   .section h1 {
     line-height: 1;

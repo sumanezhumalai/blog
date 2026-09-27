@@ -8,7 +8,6 @@ This repository was transformed from a multi-section static portfolio website (o
 To strip away all legacy portfolio content, personal credentials, and unused media assets while **preserving the signature design system and interactive chrome**:
 - 17-theme dynamic HSL color engine
 - Floating interactive theme spectrum slider (`app-aside`)
-- 12-column grid overlay developer tool
 - Letter-staggered typography hover interactions
 - Repurposed minimal text-only footer (`section.contact`)
 - Pure vanilla JS interaction engine (zero dependencies)
@@ -25,11 +24,8 @@ To strip away all legacy portfolio content, personal credentials, and unused med
   - `w` or `b`: Toggle between black (`theme--00`) and white (`theme--16`) themes.
   - `s`: Cycle sequentially through the theme spectrum.
 
-### 📐 Grid System & Overlay (`styles/grid.css` & `styles/media-queries.css`)
-- **12-Column Responsive Grid**: Uses CSS Grid variables (`--grid--app-columns`).
-- **Developer Grid Overlay (`app-grid-overlay`)**: Visual grid overlay toggleable via:
-  - Sidebar grid icon button (`.option.grid`).
-  - Keyboard shortcuts: `g` or `;`.
+### 📐 Grid System (`styles/variables.css` & `styles/media-queries.css`)
+- **12-Column Responsive Grid**: Uses CSS Grid variables (`--grid--app-columns`) for the page layout across all responsive breakpoints.
 
 ### 🔤 Header & Brand Typography (`styles/main.css`)
 - **Header (`app-header`)**: Fixed top bar with staggered letter hover animation across full brand name (`<span>S</span><span>u</span>...`).
@@ -49,12 +45,13 @@ To strip away all legacy portfolio content, personal credentials, and unused med
 
 | Category | Removed Items | Reason |
 | :--- | :--- | :--- |
+| **Grid Overlay** | `.app-grid-overlay`, `.option.grid` button, `styles/grid.css`, shortcuts (`g`, `;`), and column hide rules | Removed developer overlay completely for a clean production setup. |
 | **Navbar & Menu** | `<nav class="app-nav">`, `.option.navigation` (hamburger), all mobile nav overlays & scroll-spy | Cleaned completely per design request to focus layout on blog content. |
 | **HTML Sections** | `intro`, `work`, `values`, `background`, `references`, `about` | Legacy portfolio content replaced by placeholder comments for blog components. |
 | **Media Assets** | `assets/app/*` (webp/svgs), `assets/svg/*` | Deleted unused project thumbnails, portfolio icons, and background images. |
-| **Stylesheets** | `about.css` → renamed to `main.css` | Stripped all section-specific CSS and dead code (reduced from 1,017 lines to 495 lines). |
-| **Media Queries** | Section-specific rules, empty queries, mobile nav animations | Refactored `media-queries.css` (reduced to ~90 lines). |
-| **Scripts** | jQuery, Easing, Modernizr, portfolio scroll handlers, nav scroll-spy | Replaced with pure vanilla JS `scripts/script.js` (213 lines). |
+| **Stylesheets** | `about.css` → renamed to `main.css`, `grid.css` deleted | Stripped all section-specific CSS and dead code (reduced from 1,017 lines to 487 lines). |
+| **Media Queries** | Section-specific rules, empty queries, mobile nav animations, grid overlay rules | Refactored `media-queries.css` (reduced to 82 lines). |
+| **Scripts** | jQuery, Easing, Modernizr, portfolio scroll handlers, nav scroll-spy, grid toggle | Replaced with pure vanilla JS `scripts/script.js` (187 lines). |
 
 ---
 
@@ -74,7 +71,6 @@ To strip away all legacy portfolio content, personal credentials, and unused med
 └── styles/
     ├── color.css                  # 17-theme color definitions (Sacred)
     ├── font.css                   # Font face & typography rules
-    ├── grid.css                   # Overlay grid CSS
     ├── main.css                   # Primary layout & component styles
     ├── media-queries.css          # Responsive breakpoint overrides
     ├── normalize-8.0.1.css        # CSS normalization
@@ -91,7 +87,7 @@ The template is now ready for the next development phase:
 1. **Astro Initialization**:
    - Initialize Astro inside the repository directory (`npx create-astro@latest ./`).
 2. **Component Migration**:
-   - Convert `app-header`, `app-aside` (Theme Slider), `app-grid-overlay`, and `section.contact` (Footer) into reusable Astro components (`src/components/`).
+   - Convert `app-header`, `app-aside` (Theme Slider), and `section.contact` (Footer) into reusable Astro components (`src/components/`).
 3. **MDX Blog Content**:
    - Configure Astro Content Collections (`src/content/blog/`) for writing articles using MDX with custom UI components.
 4. **Asset Relocation**:

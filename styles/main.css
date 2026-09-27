@@ -176,14 +176,6 @@
   .app-aside .option svg path {
     fill: var(--color--foreground--100);
   }
-  .app-aside .option.grid {
-    display: flex;
-    justify-content: center;
-  }
-  .app-aside .option.grid .content {
-    display: flex;
-    align-items: center;
-  }
   .app-aside .option.theme {
     position: relative;
     transition: height 0.3s ease 0.62s;
