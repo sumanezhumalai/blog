@@ -37,23 +37,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Auto hide app cover on load
+  // Auto hide app cover on load (0.25s delay, then entrance animation triggers)
   function hideAppCoverDelay() {
-    window.setTimeout(hideAppCover, 1750);
+    window.setTimeout(hideAppCover, 250);
   }
   function hideAppCover() {
     document.body.classList.remove('cover--is--visible');
   }
-  hideAppCoverDelay();
+  if (document.body.classList.contains('cover--is--visible')) {
+    hideAppCoverDelay();
+  }
 
-  // Auto remove body loading class to prevent UI bugs
+  // Auto remove body loading class once load-in transitions complete (250ms delay + 1750ms transitions = 2000ms)
   function removeLoadingClassDelay() {
-    window.setTimeout(removeLoadingClass, 3250);
+    window.setTimeout(removeLoadingClass, 2000);
   }
   function removeLoadingClass() {
     document.body.classList.remove('is--loading');
   }
-  removeLoadingClassDelay();
+  if (document.body.classList.contains('is--loading')) {
+    removeLoadingClassDelay();
+  }
 
   // Mobile nav trigger
   var navToggle = document.querySelector('.app-header .navigation');
@@ -152,6 +156,41 @@ document.addEventListener('DOMContentLoaded', function() {
       scrollToContact();
     });
   });
+
+  // Nav scroll-spy
+  // Uses IntersectionObserver instead of polling on scroll/resize/load events.
+  // Marks the contact nav item active when the contact section enters the viewport.
+  // Wire additional section observers here as blog content is added in Astro.
+  (function() {
+    var appNavItems    = document.querySelectorAll('.app-nav .item');
+    var sectionContact = document.querySelector('.app-main .section.contact');
+
+    if (!sectionContact || !appNavItems.length) return;
+
+    var navItemContact = document.querySelector('.app-nav .item.contact');
+    var navItemFirst   = document.querySelector('.app-nav .item:first-child');
+
+    function setActive(activeItem) {
+      appNavItems.forEach(function(item) { item.classList.remove('is--active'); });
+      if (activeItem) activeItem.classList.add('is--active');
+    }
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          setActive(navItemContact);
+        } else {
+          setActive(navItemFirst); // Default: first item active when at top
+        }
+      });
+    }, {
+      // Fire when the midpoint of the contact section crosses the viewport edge
+      threshold: 0,
+      rootMargin: '0px 0px -50% 0px'
+    });
+
+    observer.observe(sectionContact);
+  })();
 
 }); // End DOMContentLoaded
 
@@ -276,39 +315,4 @@ function appGridOverlay() {
 
 
 
-// Nav scroll-spy
-// Uses IntersectionObserver instead of polling on scroll/resize/load events.
-// Marks the contact nav item active when the contact section enters the viewport.
-// Wire additional section observers here as blog content is added in Astro.
-(function() {
 
-  var appNavItems    = document.querySelectorAll('.app-nav .item');
-  var sectionContact = document.querySelector('.app-main .section.contact');
-
-  if (!sectionContact || !appNavItems.length) return;
-
-  var navItemContact = document.querySelector('.app-nav .item.contact');
-  var navItemFirst   = document.querySelector('.app-nav .item:first-child');
-
-  function setActive(activeItem) {
-    appNavItems.forEach(function(item) { item.classList.remove('is--active'); });
-    if (activeItem) activeItem.classList.add('is--active');
-  }
-
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        setActive(navItemContact);
-      } else {
-        setActive(navItemFirst); // Default: first item active when at top
-      }
-    });
-  }, {
-    // Fire when the midpoint of the contact section crosses the viewport edge
-    threshold: 0,
-    rootMargin: '0px 0px -50% 0px'
-  });
-
-  observer.observe(sectionContact);
-
-})(); // End nav scroll-spy
