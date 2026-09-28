@@ -1,16 +1,21 @@
 ---
-// Footer replicating flavien-bonvin layout with Suman's verified details
-const year = new Date().getFullYear();
+// Minimalist Footer
 ---
 
-<footer class="blog-footer mt-10 mb-16 flex h-14 items-center justify-between font-mono text-xs">
-  <p class="text-muted tracking-wider">&copy; {year} Suman Ezhumalai</p>
-  <div class="flex items-center gap-6">
+<footer class="blog-footer flex h-14 items-center justify-between font-mono text-xs">
+  <a
+    href="mailto:sumanezhumalai@gmail.com"
+    class="footer-email lowercase tracking-normal"
+  >
+    sumanezhumalai@gmail.com
+  </a>
+
+  <div class="footer-links flex items-center gap-6">
     <a
       href="https://github.com/sumanezhumalai"
       target="_blank"
       rel="noopener noreferrer"
-      class="footer-link uppercase tracking-widest transition-colors"
+      class="footer-link uppercase tracking-widest"
     >
       GitHub
     </a>
@@ -18,23 +23,9 @@ const year = new Date().getFullYear();
       href="https://linkedin.com/in/sumanezhumalai"
       target="_blank"
       rel="noopener noreferrer"
-      class="footer-link uppercase tracking-widest transition-colors"
+      class="footer-link uppercase tracking-widest"
     >
       LinkedIn
-    </a>
-    <a
-      href="https://sumanezhumalai.com"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="footer-link uppercase tracking-widest transition-colors"
-    >
-      Website
-    </a>
-    <a
-      href="mailto:sumanezhumalai@gmail.com"
-      class="footer-link uppercase tracking-widest transition-colors"
-    >
-      Email
     </a>
   </div>
 </footer>
@@ -42,12 +33,33 @@ const year = new Date().getFullYear();
 <style>
   .blog-footer {
     border-top: 1px solid var(--color--foreground--15);
+    margin-bottom: 2rem;
+    width: 100%;
   }
+
+  .footer-email {
+    color: var(--color--foreground--50);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    text-underline-offset: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-email:hover {
+    color: var(--color--foreground--100);
+    text-decoration: underline;
+    text-decoration-color: var(--color--foreground--33);
+  }
+
   .footer-link {
     color: var(--color--foreground--50);
     text-decoration: none;
     letter-spacing: 0.1em;
+    transition: color 0.15s ease;
   }
+
   .footer-link:hover {
     color: var(--color--foreground--100);
   }

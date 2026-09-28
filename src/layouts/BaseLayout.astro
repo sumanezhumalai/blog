@@ -46,12 +46,23 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://sumanezhumalai.com/assets/app/meta.webp" />
     <meta property="og:url" content={`https://sumanezhumalai.com${Astro.url.pathname}`} />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://sumanezhumalai.com/assets/app/meta.webp" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PF34ZXRDQV"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-PF34ZXRDQV');
+    </script>
 
     <!-- Template Stylesheets -->
     <link rel="stylesheet" href="/styles/normalize-8.0.1.css" />
@@ -62,26 +73,42 @@ const {
     <link rel="stylesheet" href="/styles/main.css" />
     <link rel="stylesheet" href="/styles/media-queries.css" />
 
-    <!-- Inline script to set dark theme instantly before paint if user prefers dark mode -->
+    <!-- Touch detection -->
     <script is:inline>
       (function() {
         var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         document.documentElement.classList.add(isTouch ? 'touchevents' : 'no-touchevents');
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.dataset.theme = 'theme--00';
-        }
       })();
     </script>
   </head>
 
   <body class="theme--16">
+    <!-- Immediate theme restoration before first paint -->
+    <script is:inline>
+      (function() {
+        var theme = null;
+        try {
+          theme = localStorage.getItem('suman-theme');
+        } catch (e) {}
+        if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          theme = 'theme--00';
+        }
+        if (theme) {
+          document.body.className = theme;
+        }
+      })();
+    </script>
     <div class="blog-page-container">
       <Header activePath={activePath} />
 
       <main class="blog-main-content">
-        <slot />
-        {!hideNewsletter && <NewsletterCard />}
-        <Footer />
+        <div class="blog-content-area">
+          <slot />
+        </div>
+        <div class="blog-bottom-section">
+          {!hideNewsletter && <NewsletterCard />}
+          <Footer />
+        </div>
       </main>
     </div>
 
@@ -113,7 +140,19 @@ const {
   }
 
   .blog-main-content {
+    flex: 1 1 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .blog-content-area {
     flex: 1 0 auto;
+    width: 100%;
+  }
+
+  .blog-bottom-section {
+    margin-top: auto;
     width: 100%;
   }
 

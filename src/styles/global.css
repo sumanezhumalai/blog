@@ -25,8 +25,21 @@ body {
   --muted: var(--color--foreground--50);
   --focus: var(--color--foreground--33);
   --divider: var(--color--foreground--15);
-  color: var(--ink);
-  background-color: var(--background);
+  color: var(--color--foreground--100);
+  background-color: var(--color--background--100);
+}
+
+/* Dynamic theme helper utility overrides */
+.text-muted {
+  color: var(--color--foreground--50) !important;
+}
+
+.text-ink {
+  color: var(--color--foreground--100) !important;
+}
+
+.border-divider {
+  border-color: var(--color--foreground--15) !important;
 }
 
 @theme {
@@ -43,10 +56,11 @@ body {
 }
 
 /* ==========================================================================
-   Code Blocks & Syntax Highlighting (Flavien Bonvin Match + 17 Themes)
+   Code Blocks & Minimalist Horizontal Scroll Indicator
    ========================================================================== */
 
-.astro-code {
+.astro-code,
+pre {
   background-color: var(--color--background--100) !important;
   border: 1px solid var(--color--foreground--15) !important;
   border-radius: 8px !important;
@@ -56,9 +70,54 @@ body {
   font-family: var(--font--mono) !important;
   font-size: 0.84375rem !important;
   line-height: 1.65 !important;
+  /* Minimalist horizontal scroll indicator: hidden when resting, subtle on hover */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+  -webkit-overflow-scrolling: touch;
+}
+
+.astro-code:hover,
+pre:hover {
+  scrollbar-color: var(--color--foreground--25) transparent;
+}
+
+.astro-code::-webkit-scrollbar,
+pre::-webkit-scrollbar {
+  height: 3px;
+  width: 3px;
+}
+
+.astro-code::-webkit-scrollbar-track,
+pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.astro-code::-webkit-scrollbar-thumb,
+pre::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.astro-code:hover::-webkit-scrollbar-thumb,
+pre:hover::-webkit-scrollbar-thumb {
+  background-color: var(--color--foreground--25);
+}
+
+.astro-code::-webkit-scrollbar-thumb:hover,
+pre::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color--foreground--50);
 }
 
 .astro-code code,
+pre code {
+  font-family: var(--font--mono) !important;
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
 .astro-code span {
   font-family: var(--font--mono) !important;
 }
@@ -95,7 +154,7 @@ body.theme--16 .astro-code, body.theme--16 .astro-code span {
 }
 
 /* ==========================================================================
-   Inline Code (Remove backticks & clean badge styling)
+   Inline Code (Clean badge styling)
    ========================================================================== */
 
 .prose code::before,
@@ -117,10 +176,28 @@ body.theme--16 .astro-code, body.theme--16 .astro-code span {
 }
 
 /* ==========================================================================
-   Prose Content Typography & Link Contrast
+   Prose Content Typography & Dynamic Theme Reactivity
    ========================================================================== */
 
 .prose {
+  /* Override Tailwind Typography hardcoded colors with 17-theme variables */
+  --tw-prose-body: var(--color--foreground--100);
+  --tw-prose-headings: var(--color--foreground--100);
+  --tw-prose-lead: var(--color--foreground--100);
+  --tw-prose-links: var(--color--foreground--100);
+  --tw-prose-bold: var(--color--foreground--100);
+  --tw-prose-counters: var(--color--foreground--50);
+  --tw-prose-bullets: var(--color--foreground--33);
+  --tw-prose-hr: var(--color--foreground--15);
+  --tw-prose-quotes: var(--color--foreground--50);
+  --tw-prose-quote-borders: var(--color--foreground--25);
+  --tw-prose-captions: var(--color--foreground--50);
+  --tw-prose-kbd: var(--color--foreground--100);
+  --tw-prose-code: var(--color--foreground--100);
+  --tw-prose-pre-code: var(--color--foreground--100);
+  --tw-prose-pre-bg: var(--color--background--100);
+  --tw-prose-th-borders: var(--color--foreground--25);
+  --tw-prose-td-borders: var(--color--foreground--15);
   color: var(--color--foreground--100);
   max-width: 100%;
   font-size: 1.0625rem;
@@ -131,9 +208,31 @@ body.theme--16 .astro-code, body.theme--16 .astro-code span {
   color: var(--color--foreground--100);
 }
 
+/* Strong / Bold in Markdown: dynamic theme color and italic, NOT bold */
+.prose strong,
+.prose b,
+.prose :where(strong, b),
+strong,
+b {
+  color: var(--color--foreground--100) !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+}
+
+/* Italic / Emphasis in Markdown: dynamic theme color */
+.prose em,
+.prose i,
+.prose :where(em, i),
+em,
+i {
+  color: var(--color--foreground--100) !important;
+  font-style: italic !important;
+}
+
+/* Headings: Crisp 500 weight (Suman Sans) with dynamic color */
 .prose :where(h1, h2, h3, h4, h5, h6) {
   color: var(--color--foreground--100);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.025em;
 }
 

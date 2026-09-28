@@ -11,8 +11,7 @@ const { activePath = "/" } = Astro.props;
     <div class="brand">
       <a href="/" class="brand-link" aria-label="Suman Ezhumalai Home">
         <h3 class="brand-title">
-          <span>S</span><span>u</span><span>m</span><span>a</span><span>n</span><span>
-          </span><span>E</span><span>z</span><span>h</span><span>u</span><span>m</span><span>a</span><span>l</span><span>a</span><span>i</span>
+          <span>S</span><span>u</span><span>m</span><span>a</span><span>n</span><span class="brand-space">&nbsp;</span><span>E</span><span>z</span><span>h</span><span>u</span><span>m</span><span>a</span><span>l</span><span>a</span><span>i</span>
         </h3>
       </a>
     </div>
@@ -22,7 +21,7 @@ const { activePath = "/" } = Astro.props;
         href="/"
         class:list={["header-link", (activePath === "/" || activePath === "/articles") && "is--active"]}
       >
-        Blogs
+        Blog
       </a>
       <a
         href="https://sumanezhumalai.com"
@@ -60,15 +59,24 @@ const { activePath = "/" } = Astro.props;
 
   .brand-title {
     margin-left: var(--font--margin-left, -0.07em);
-    font-size: var(--font--size-medium, 22px);
+    font-size: 1.0625rem; /* Optimal, refined fit alongside navigation */
     line-height: 1;
     font-weight: 500;
+    letter-spacing: -0.015em;
   }
 
   .brand-title span:nth-child(n+2) {
     margin-left: -0.035em;
     opacity: 0;
+    display: inline-block;
     transition: margin-left 0.3s ease-in, opacity 0.3s ease-in;
+  }
+
+  .brand-title .brand-space {
+    width: 0;
+    overflow: hidden;
+    margin-left: 0;
+    transition: width 0.3s ease-in, opacity 0.3s ease-in;
   }
 
   .brand:hover .brand-title span:nth-child(n+2) {
@@ -77,7 +85,14 @@ const { activePath = "/" } = Astro.props;
     transition: margin-left 0.3s ease-out, opacity 0.3s ease-out;
   }
 
-  /* Stagger delays from clean template */
+  .brand:hover .brand-title .brand-space {
+    width: 0.35em;
+    margin-left: 0;
+    opacity: 1;
+    transition: width 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  /* Stagger delays on hover (expand left-to-right) */
   .brand:hover .brand-title span:nth-child(2)  { transition-delay: 0.00s; }
   .brand:hover .brand-title span:nth-child(3)  { transition-delay: 0.01s; }
   .brand:hover .brand-title span:nth-child(4)  { transition-delay: 0.02s; }
@@ -92,7 +107,22 @@ const { activePath = "/" } = Astro.props;
   .brand:hover .brand-title span:nth-child(13) { transition-delay: 0.11s; }
   .brand:hover .brand-title span:nth-child(14) { transition-delay: 0.12s; }
   .brand:hover .brand-title span:nth-child(15) { transition-delay: 0.13s; }
-  .brand:hover .brand-title span:nth-child(16) { transition-delay: 0.14s; }
+
+  /* Reverse stagger delays on mouse leave (collapse right-to-left) */
+  .brand .brand-title span:nth-child(2)  { transition-delay: 0.13s; }
+  .brand .brand-title span:nth-child(3)  { transition-delay: 0.12s; }
+  .brand .brand-title span:nth-child(4)  { transition-delay: 0.11s; }
+  .brand .brand-title span:nth-child(5)  { transition-delay: 0.10s; }
+  .brand .brand-title span:nth-child(6)  { transition-delay: 0.09s; }
+  .brand .brand-title span:nth-child(7)  { transition-delay: 0.08s; }
+  .brand .brand-title span:nth-child(8)  { transition-delay: 0.07s; }
+  .brand .brand-title span:nth-child(9)  { transition-delay: 0.06s; }
+  .brand .brand-title span:nth-child(10) { transition-delay: 0.05s; }
+  .brand .brand-title span:nth-child(11) { transition-delay: 0.04s; }
+  .brand .brand-title span:nth-child(12) { transition-delay: 0.03s; }
+  .brand .brand-title span:nth-child(13) { transition-delay: 0.02s; }
+  .brand .brand-title span:nth-child(14) { transition-delay: 0.01s; }
+  .brand .brand-title span:nth-child(15) { transition-delay: 0.00s; }
 
   .actions {
     display: flex;

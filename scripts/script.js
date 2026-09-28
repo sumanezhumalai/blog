@@ -1,18 +1,13 @@
-// Script
+// Theme Engine & Interaction Script
 //------------------------------------------------------------------------------
 
-
-// Touch detection — replaces Modernizr
-// Runs synchronously (before DOMContentLoaded) so that CSS rules that select
-// html.touchevents / html.no-touchevents apply on first paint with no flash.
-// No caveats: ('ontouchstart' in window) + maxTouchPoints covers all modern browsers.
+// Touch detection
 var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 document.documentElement.classList.add(isTouch ? 'touchevents' : 'no-touchevents');
 
-
 document.addEventListener('DOMContentLoaded', function() {
 
-  // Reset the window scroll position to top on every page load and re-load
+  // Reset the window scroll position to top on page load
   if (history.scrollRestoration) {
     history.scrollRestoration = 'manual';
   }
@@ -22,39 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('touchstart', function() {}, { passive: true });
   });
 
-
-  // Detect if user prefers dark mode and apply it
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    if (document.body.classList.contains('theme--16')) {
-      appThemeRemoveAll();
-      document.body.classList.add('theme--00');
-      var slider = document.querySelector('.app-aside .slider');
-      if (slider) slider.value = 0;
-    }
+  // Initialize and sync theme slider with current active theme
+  var currentThemeMatch = document.body.className.match(/theme--(\d+)/);
+  var slider = document.querySelector('.app-aside .slider');
+  if (currentThemeMatch && slider) {
+    slider.value = parseInt(currentThemeMatch[1], 10);
   }
-
-  // Auto hide app cover on load (0.25s delay, then entrance animation triggers)
-  function hideAppCoverDelay() {
-    window.setTimeout(hideAppCover, 250);
-  }
-  function hideAppCover() {
-    document.body.classList.remove('cover--is--visible');
-  }
-  if (document.body.classList.contains('cover--is--visible')) {
-    hideAppCoverDelay();
-  }
-
-  // Auto remove body loading class once load-in transitions complete (250ms delay + 1750ms transitions = 2000ms)
-  function removeLoadingClassDelay() {
-    window.setTimeout(removeLoadingClass, 2000);
-  }
-  function removeLoadingClass() {
-    document.body.classList.remove('is--loading');
-  }
-  if (document.body.classList.contains('is--loading')) {
-    removeLoadingClassDelay();
-  }
-
 
   // Theme slider — hover to expand (non-touch devices only)
   if (!isTouch) {
@@ -90,23 +58,20 @@ document.addEventListener('DOMContentLoaded', function() {
   if (themeSlider) {
     themeSlider.addEventListener('input', function() {
       var val = parseInt(this.value, 10);
-      // Pad single-digit values with leading zero to match class names (e.g. 'theme--05')
       var padded = val < 10 ? '0' + val : '' + val;
-      appThemeRemoveAll();
-      document.body.classList.add('theme--' + padded);
+      appThemeSet('theme--' + padded, val);
     });
   }
 
 }); // End DOMContentLoaded
 
-
-
 // Keyboard Shortcuts
 // reference https://www.w3.org/2002/09/tests/keys.html
 document.addEventListener('keydown', function(key) {
+  // Avoid interfering when typing in inputs/textareas
+  if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
   switch(parseInt(key.which, 10)) {
-
     // 'w' key — toggle white/black theme
     case 87:
       appTheme();
@@ -124,18 +89,6 @@ document.addEventListener('keydown', function(key) {
   }
 });
 
-
-
-// Scroll to Contact (footer)
-// Uses native scrollIntoView — smooth, efficient, no easing library required.
-function scrollToContact() {
-  var sectionContact = document.querySelector('.app-main .section.contact');
-  if (sectionContact) {
-    sectionContact.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-
 // Remove all theme-- classes from body
 function appThemeRemoveAll() {
   var toRemove = [];
@@ -149,26 +102,32 @@ function appThemeRemoveAll() {
   });
 }
 
+// Set active theme, sync slider, and persist preference
+function appThemeSet(themeClass, sliderVal) {
+  appThemeRemoveAll();
+  document.body.classList.add(themeClass);
+  try {
+    localStorage.setItem('suman-theme', themeClass);
+  } catch(e) {}
+  var slider = document.querySelector('.app-aside .slider');
+  if (slider && typeof sliderVal !== 'undefined') {
+    slider.value = sliderVal;
+  }
+}
+
 // Toggle between black (theme--00) and white (theme--16)
 function appTheme() {
-  var slider = document.querySelector('.app-aside .slider');
   if (document.body.classList.contains('theme--00')) {
-    appThemeRemoveAll();
-    document.body.classList.add('theme--16');
-    if (slider) slider.value = 16;
+    appThemeSet('theme--16', 16);
   } else {
-    appThemeRemoveAll();
-    document.body.classList.add('theme--00');
-    if (slider) slider.value = 0;
+    appThemeSet('theme--00', 0);
   }
 }
 
 // Cycle through all themes sequentially (16 → 15 → ... → 00 → 16)
 function appThemeSpectrum() {
-  var slider = document.querySelector('.app-aside .slider');
   var themes = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'];
 
-  // Find the currently active theme index
   var currentIndex = -1;
   for (var i = 0; i < themes.length; i++) {
     if (document.body.classList.contains('theme--' + themes[i])) {
@@ -176,11 +135,8 @@ function appThemeSpectrum() {
       break;
     }
   }
-  if (currentIndex === -1) currentIndex = 16; // fallback to white if none found
+  if (currentIndex === -1) currentIndex = 16;
 
-  // Cycle downward: 16→15→...→00→16
   var nextIndex = currentIndex === 0 ? 16 : currentIndex - 1;
-  appThemeRemoveAll();
-  document.body.classList.add('theme--' + themes[nextIndex]);
-  if (slider) slider.value = nextIndex;
+  appThemeSet('theme--' + themes[nextIndex], nextIndex);
 }

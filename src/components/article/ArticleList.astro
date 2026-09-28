@@ -9,7 +9,7 @@ interface Props {
 const { articles } = Astro.props;
 ---
 
-<ul class="mb-16 list-none p-0 m-0">
+<ul class="article-list">
   {
     articles.map((article) => {
       return (
@@ -35,6 +35,11 @@ const { articles } = Astro.props;
 </ul>
 
 <style>
+  .article-list {
+    margin: 0 0 4rem 0;
+    padding: 0;
+    list-style: none;
+  }
   .article-row {
     border-bottom: 1px solid var(--color--foreground--15);
     text-decoration: none;
