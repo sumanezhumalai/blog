@@ -1,0 +1,13 @@
+/* Variables
+----------------------------------------------------------------------------- */
+
+:root {
+  --font--family: "Suman Sans", system-ui, sans-serif;
+  --font--style: normal;
+  --font--weight: 500;
+  --font--margin-left: -0.07em;
+  --font--feature-settings: "liga", "ss02", "ss03", "ss04", "ss06";
+  --font--size-regular: 16px;
+  --font--size-regular-line-height: 1.25;
+  --grid--app-margin: 40px;
+}

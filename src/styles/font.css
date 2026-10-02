@@ -31,10 +31,3 @@ html {
   line-height: var(--font--size-regular-line-height);
 }
 
-.numeral-8 {
-  font-feature-settings: var(--font--feature-settings-no-stylized-numeral-8);
-}
-
-.opening-quote-mark {
-  margin-left: var(--font--margin-left-opening-quote-mark);
-}

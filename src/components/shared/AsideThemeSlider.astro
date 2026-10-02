@@ -15,23 +15,11 @@
 
       <div class="slider-container">
         <div class="dots" aria-hidden="true">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
+          {
+            Array.from({ length: 17 }).map((_, i) => (
+              <div class="dot" style={`--i: ${i}; --rev: ${16 - i};`} />
+            ))
+          }
         </div>
         <input
           class="slider"

@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@import "./variables.css";
+@import "./color.css";
+@import "./font.css";
+@import "./main.css";
+
+* {
+  -webkit-tap-highlight-color: rgb(0 0 0 / 0);
+}
+
+img {
+  user-select: none;
+}
+
 @theme inline {
   --font-sans: var(--font--family, "Suman Sans", system-ui, sans-serif);
   --font-mono: var(--font--mono, ui-monospace, monospace);
@@ -123,14 +136,7 @@ pre code {
 }
 
 /* Shiki in Dark Themes (theme--00 to theme--07) */
-body.theme--00 .astro-code, body.theme--00 .astro-code span,
-body.theme--01 .astro-code, body.theme--01 .astro-code span,
-body.theme--02 .astro-code, body.theme--02 .astro-code span,
-body.theme--03 .astro-code, body.theme--03 .astro-code span,
-body.theme--04 .astro-code, body.theme--04 .astro-code span,
-body.theme--05 .astro-code, body.theme--05 .astro-code span,
-body.theme--06 .astro-code, body.theme--06 .astro-code span,
-body.theme--07 .astro-code, body.theme--07 .astro-code span {
+body:is(.theme--00, .theme--01, .theme--02, .theme--03, .theme--04, .theme--05, .theme--06, .theme--07) :is(.astro-code, .astro-code span) {
   color: var(--shiki-dark) !important;
   background-color: var(--color--background--100) !important;
   font-style: var(--shiki-dark-font-style) !important;
@@ -138,15 +144,7 @@ body.theme--07 .astro-code, body.theme--07 .astro-code span {
 }
 
 /* Shiki in Light Themes (theme--08 to theme--16) */
-body.theme--08 .astro-code, body.theme--08 .astro-code span,
-body.theme--09 .astro-code, body.theme--09 .astro-code span,
-body.theme--10 .astro-code, body.theme--10 .astro-code span,
-body.theme--11 .astro-code, body.theme--11 .astro-code span,
-body.theme--12 .astro-code, body.theme--12 .astro-code span,
-body.theme--13 .astro-code, body.theme--13 .astro-code span,
-body.theme--14 .astro-code, body.theme--14 .astro-code span,
-body.theme--15 .astro-code, body.theme--15 .astro-code span,
-body.theme--16 .astro-code, body.theme--16 .astro-code span {
+body:is(.theme--08, .theme--09, .theme--10, .theme--11, .theme--12, .theme--13, .theme--14, .theme--15, .theme--16) :is(.astro-code, .astro-code span) {
   color: var(--shiki-light, #4c4f69) !important;
   background-color: var(--color--background--100) !important;
   font-style: var(--shiki-light-font-style) !important;

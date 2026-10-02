@@ -1,0 +1,89 @@
+/* Color
+----------------------------------------------------------------------------- */
+
+body {
+  color: var(--color--foreground--100);
+  background-color: var(--color--background--100);
+}
+
+:root,
+body {
+  --color--foreground--50:  rgb(from var(--color--foreground--100) r g b / 0.5);
+  --color--foreground--33:  rgb(from var(--color--foreground--100) r g b / 0.333);
+  --color--foreground--25:  rgb(from var(--color--foreground--100) r g b / 0.25);
+  --color--foreground--20:  rgb(from var(--color--foreground--100) r g b / 0.2);
+  --color--foreground--15:  rgb(from var(--color--foreground--100) r g b / 0.15);
+  --color--foreground--10:  rgb(from var(--color--foreground--100) r g b / 0.1);
+  --color--foreground--5:   rgb(from var(--color--foreground--100) r g b / 0.05);
+  --color--foreground--0:   rgb(from var(--color--foreground--100) r g b / 0);
+  --color--background--0:   rgb(from var(--color--background--100) r g b / 0);
+}
+
+body.theme--16 {
+  --color--foreground--100: rgb(0 0 0);
+  --color--background--100: rgb(255 255 255);
+}
+body.theme--15 {
+  --color--foreground--100: rgb(18 25 26);
+  --color--background--100: rgb(242 251 253);
+}
+body.theme--14 {
+  --color--foreground--100: rgb(30 40 42);
+  --color--background--100: rgb(222 235 238);
+}
+body.theme--13 {
+  --color--foreground--100: rgb(38 54 49);
+  --color--background--100: rgb(213 227 222);
+}
+body.theme--12 {
+  --color--foreground--100: rgb(59 66 54);
+  --color--background--100: rgb(209 218 203);
+}
+body.theme--11 {
+  --color--foreground--100: rgb(81 78 56);
+  --color--background--100: rgb(213 209 183);
+}
+body.theme--10 {
+  --color--foreground--100: rgb(119 78 52);
+  --color--background--100: rgb(243 230 207);
+}
+body.theme--09 {
+  --color--foreground--100: rgb(233 79 14);
+  --color--background--100: rgb(255 210 180);
+}
+body.theme--08 {
+  --color--foreground--100: rgb(243 230 207);
+  --color--background--100: rgb(233 79 14);
+}
+body.theme--07 {
+  --color--foreground--100: rgb(243 216 184);
+  --color--background--100: rgb(157 68 51);
+}
+body.theme--06 {
+  --color--foreground--100: rgb(242 195 164);
+  --color--background--100: rgb(119 58 53);
+}
+body.theme--05 {
+  --color--foreground--100: rgb(255 177 177);
+  --color--background--100: rgb(84 60 89);
+}
+body.theme--04 {
+  --color--foreground--100: rgb(248 166 211);
+  --color--background--100: rgb(64 54 79);
+}
+body.theme--03 {
+  --color--foreground--100: rgb(207 188 236);
+  --color--background--100: rgb(46 50 72);
+}
+body.theme--02 {
+  --color--foreground--100: rgb(183 212 245);
+  --color--background--100: rgb(24 41 56);
+}
+body.theme--01 {
+  --color--foreground--100: rgb(195 235 241);
+  --color--background--100: rgb(5 26 28);
+}
+body.theme--00 {
+  --color--foreground--100: rgb(255 255 255);
+  --color--background--100: rgb(0 0 0);
+}

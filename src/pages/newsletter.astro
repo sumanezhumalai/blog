@@ -1,0 +1,135 @@
+---
+export const prerender = false;
+
+import BaseLayout from "@layouts/BaseLayout.astro";
+import PageHeader from "@components/shared/PageHeader.astro";
+import { actions } from "astro:actions";
+import { isInputError } from "astro:actions";
+
+const result = Astro.getActionResult(actions.subscribeNewsletter);
+
+const errorMessage =
+  result?.error?.code === "INTERNAL_SERVER_ERROR" || result?.error?.code === "CONFLICT"
+    ? result?.error?.message
+    : undefined;
+
+const inputErrors = isInputError(result?.error)
+  ? result.error.fields.email
+  : null;
+
+const successMessage = result?.data?.success
+  ? "Thanks for subscribing! Please check your inbox to confirm your email."
+  : undefined;
+---
+
+<BaseLayout
+  title="Newsletter — Suman Ezhumalai"
+  description="One article at a time. No campaigns, no filler."
+  activePath="/newsletter"
+  hideNewsletter
+>
+  <PageHeader title="Read the blog by email">
+    One article at a time. No campaigns, no filler.
+  </PageHeader>
+  <form
+    method="post"
+    action={actions.subscribeNewsletter}
+    class="newsletter-form"
+  >
+    <input
+      required
+      type="email"
+      name="email"
+      autocomplete="email"
+      class="newsletter-input"
+      placeholder="your@email.com"
+      aria-describedby="error"
+    />
+
+    <button
+      class="newsletter-submit-btn"
+      type="submit"
+    >
+      Subscribe
+    </button>
+  </form>
+
+  <div class="newsletter-messages">
+    {errorMessage && <p class="msg-error">{errorMessage}</p>}
+    {successMessage && <p class="msg-success">{successMessage}</p>}
+    {
+      inputErrors && (
+        <p class="msg-error" id="error">
+          {inputErrors.join(", ")}
+        </p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 24rem;
+  }
+
+  .newsletter-input {
+    width: 100%;
+    border: 1px solid var(--color--foreground--20);
+    background: transparent;
+    padding: 0.625rem 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    color: var(--color--foreground--100);
+    transition: border-color 0.15s ease;
+    border-radius: 4px;
+  }
+
+  .newsletter-input::placeholder {
+    color: var(--color--foreground--50);
+  }
+
+  .newsletter-input:focus {
+    outline: none;
+    border-color: var(--color--foreground--50);
+  }
+
+  .newsletter-submit-btn {
+    width: 100%;
+    cursor: pointer;
+    border: 1px solid var(--color--foreground--20);
+    background: transparent;
+    padding: 0.625rem 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color--foreground--100);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    border-radius: 4px;
+  }
+
+  .newsletter-submit-btn:hover {
+    border-color: var(--color--foreground--50);
+    background-color: var(--color--foreground--5);
+  }
+
+  .newsletter-messages {
+    margin-top: 1rem;
+    height: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+  }
+
+  .msg-error {
+    color: #ef4444;
+    margin: 0;
+  }
+
+  .msg-success {
+    color: #22c55e;
+    margin: 0;
+  }
+</style>

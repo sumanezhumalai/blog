@@ -1,13 +1,11 @@
 ---
-import { render } from "astro:content";
-import { getAllArticles } from "@data/articles";
+import { getCollection, render } from "astro:content";
 import BaseLayout from "@layouts/BaseLayout.astro";
-import LayoutContent from "@components/layout/LayoutContent.astro";
 import ArticleHeader from "@components/article/ArticleHeader.astro";
 import ArticleHero from "@components/article/ArticleHero.astro";
 
 export async function getStaticPaths() {
-  const articles = await getAllArticles();
+  const articles = await getCollection("articles", ({ data }) => !data.draft);
   return articles.map((article) => ({
     params: { slug: article.id },
     props: article,
@@ -25,7 +23,7 @@ const { Content } = await render(article);
 >
   <ArticleHeader article={article} />
   <ArticleHero article={article} />
-  <LayoutContent type={article.data.type}>
+  <article class="prose mb-10 w-full max-w-none">
     <Content />
-  </LayoutContent>
+  </article>
 </BaseLayout>

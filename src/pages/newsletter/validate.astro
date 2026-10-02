@@ -1,0 +1,46 @@
+---
+export const prerender = false;
+
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { getResend } from "@utils/resend";
+
+async function getKV() {
+  try {
+    const { env } = await import("cloudflare:workers");
+    return env.NEWSLETTER_TOKENS;
+  } catch {
+    return null;
+  }
+}
+
+const token = Astro.url.searchParams.get("token");
+if (!token) {
+  return Astro.redirect("/404");
+}
+
+const subKV = await getKV();
+if (!subKV) {
+  return Astro.redirect("/404");
+}
+
+const email = await subKV.get(`uuid:${token}`);
+if (!email) {
+  return Astro.redirect("/404");
+}
+
+const resend = await getResend();
+await resend.contacts.create({
+  email,
+  unsubscribed: false,
+});
+
+await subKV.delete(`uuid:${token}`);
+await subKV.delete(`email:${email}`);
+return Astro.redirect("/newsletter/validated");
+---
+
+<BaseLayout
+  title="Newsletter — Suman Ezhumalai"
+  description="One article at a time. No campaigns, no filler."
+  hideNewsletter
+/>

@@ -1,0 +1,61 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import PageHeader from "@components/shared/PageHeader.astro";
+---
+
+<BaseLayout
+  title="Newsletter — Suman Ezhumalai"
+  description="One article at a time. No campaigns, no filler."
+  hideNewsletter
+>
+  <div class="validated-container">
+    <p class="validated-badge">
+      Subscription confirmed
+    </p>
+    <PageHeader title="Subscription confirmed">
+      One article at a time. No campaigns, no filler.
+    </PageHeader>
+    <a
+      class="back-home-btn"
+      href="/"
+    >
+      Back to home
+    </a>
+  </div>
+</BaseLayout>
+
+<style>
+  .validated-container {
+    margin-top: 5rem;
+    margin-bottom: 5rem;
+  }
+
+  .validated-badge {
+    margin-bottom: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #22c55e;
+  }
+
+  .back-home-btn {
+    display: inline-block;
+    width: fit-content;
+    border: 1px solid var(--color--foreground--20);
+    padding: 0.625rem 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color--foreground--100);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    border-radius: 4px;
+  }
+
+  .back-home-btn:hover {
+    border-color: var(--color--foreground--50);
+    background-color: var(--color--foreground--5);
+  }
+</style>

@@ -1,6 +1,5 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getFormattedDate } from "@utils/date";
 
 interface Props {
   articles: CollectionEntry<"articles">[];
@@ -13,7 +12,7 @@ const { articles } = Astro.props;
   {
     articles.map((article) => {
       return (
-        <li class="list-none m-0 p-0">
+        <li>
           <a
             href={`/articles/${article.id}`}
             class="article-row group flex flex-col py-4 sm:flex-row sm:items-baseline sm:gap-6"
@@ -22,7 +21,7 @@ const { articles } = Astro.props;
               datetime={article.data.publicationDate.toISOString()}
               class="article-date shrink-0 font-mono text-xs sm:w-28 uppercase tracking-wider"
             >
-              {getFormattedDate(article.data.publicationDate)}
+              {article.data.publicationDate.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
             </time>
             <h2 class="article-title text-lg leading-snug tracking-tight transition-colors">
               {article.data.title}

@@ -7,10 +7,9 @@
     "paths": {
       "@components/*": ["components/*"],
       "@layouts/*": ["layouts/*"],
-      "@ui/*": ["components/*"],
-      "@data/*": ["data/*"],
       "@utils/*": ["utils/*"],
-      "@styles/*": ["styles/*"]
+      "@emails/*": ["emails/*"],
+      "@actions/*": ["actions/*"]
     }
   }
 }

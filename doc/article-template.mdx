@@ -1,0 +1,162 @@
+---
+title: "Article Title: Clear, Engaging, and Specific"
+description: "A concise 1-2 sentence summary of the article's core value proposition, key takeaways, and audience focus. Used for SEO meta tags and social preview cards."
+publishDate: 2026-09-29
+type: DEV
+readingTime: 8
+tags: ["guide", "dev", "architecture", "performance"]
+draft: true
+---
+
+# Future Article Blueprint & Authoring Guide
+
+> [!NOTE]
+> This file serves as both an executable documentation template and a starter skeleton for any new `.mdx` post in `src/articles/`. Keep `draft: true` while authoring so this template remains hidden from public builds and the blog index list.
+
+---
+
+## 1. Frontmatter Schema & Specifications
+
+Every article file placed under `src/articles/` must begin with YAML frontmatter bounded by triple hyphens (`---`). 
+The Astro Content Collections schema defined in `src/content.config.ts` enforces the following fields:
+
+| Field | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `title` | `string` | **Yes** | — | The headline displayed in `<ArticleHeader>` and `<title>` tag. |
+| `description` | `string` | **Yes** | — | Meta description for search engines and social preview cards. |
+| `publishDate` | `Date` (YYYY-MM-DD) | No | `today` | Release date used for reverse-chronological sorting. Can also be named `publicationDate`. |
+| `type` | `"DEV"` \| `"BEYOND"` \| `"SYSADMIN"` | No | `"DEV"` | Controls layout accents and hero color theme (`DEV`=blue accent, `BEYOND`=orange accent). |
+| `readingTime` | `number` | No | `7` | Estimated reading duration in minutes, shown in the meta header. |
+| `tags` | `string[]` | No | `[]` | Categorical tags displayed as uppercase badges in the `<ArticleHero>` box. |
+| `draft` | `boolean` | No | `false` | When `true`, hides the post from the blog index and static route generation. |
+
+---
+
+## 2. How Blog Page Generation Works
+
+### Article Lifecycle & Automatic Index Updation
+
+1. **Storage & Detection (`src/articles/`)**:
+   - Every file ending in `.md` or `.mdx` directly inside `src/articles/` is loaded by Astro's Content Layer glob loader (`src/content.config.ts`).
+   - The slug/route is derived automatically from the file basename. For example, `src/articles/hardening-a-fresh-vps.mdx` yields `/articles/hardening-a-fresh-vps`.
+
+2. **Data Pipeline (`src/data/articles.ts`)**:
+   - `getAllArticles()` queries Astro's `getCollection("articles")` and strips any post where `draft === true`.
+   - `sortArticlesByPublicationDate()` sorts entries descending by publication timestamp (`b - a`).
+   - `getDevArticles(limit?)` exposes the sorted collection to pages.
+
+3. **Automatic Listing on Index (`src/pages/index.astro` & `src/pages/articles/index.astro`)**:
+   - Whenever you create a new `.mdx` file and set `draft: false`, it automatically appears at the top of the main Blog list without modifying any code or database.
+   - The list row renders the uppercase formatted date (`DD MMM YYYY`), hover color transitions, and links directly to `/articles/<slug>`.
+
+4. **Dynamic Page Route Generation (`src/pages/articles/[...slug].astro`)**:
+   - `getStaticPaths()` maps every published article's `article.id` to a static HTML page.
+   - Each page is composed using `BaseLayout.astro`, `ArticleHeader.astro`, `ArticleHero.astro`, and the Tailwind Typography `LayoutContent.astro` wrapper.
+
+---
+
+## 3. Recommended Article Content Structure
+
+A well-structured technical article generally follows this cadence:
+
+### Introduction & The "Why"
+Open with 1-2 paragraphs defining the real-world problem, the friction developers encounter, and the objective of this guide.
+
+### Architecture or Flow Diagram
+Visual ASCII or schematic diagrams anchor complex mental models:
+
+```text
+ Client (Browser / API Client)
+             │
+             ▼
+   [ Nginx Reverse Proxy ]  <── SSL Termination (Let's Encrypt)
+             │
+   ┌─────────┴─────────┐
+   ▼                   ▼
+ [ Service A: Web ]  [ Service B: API ]
+   │                   │
+   └─────────┬─────────┘
+             ▼
+      [ PostgreSQL DB ]
+```
+
+### Prerequisites
+Bulleted checklist of dependencies, tools, and versions assumed by the article:
+- Ubuntu 24.04 LTS VPS instance with root or sudo privileges.
+- Docker CE v26.0+ and Docker Compose v2.27+.
+- Domain configured with DNS `A` records pointing to your server IP.
+
+### Step-by-Step Implementation Sections
+Break instructions into clear `##` and `###` headers. Use bold, code spans, and syntax-highlighted code fences.
+
+#### Example Configuration Snippet (`yaml` / `nginx` / `bash`):
+
+```bash
+# Update repositories and install baseline tooling
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y ufw fail2ban curl git
+```
+
+```yaml
+# docker-compose.yml
+services:
+  app:
+    image: node:20-alpine
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+```
+
+### Callouts and Highlights
+Use markdown blockquotes to emphasize critical gotchas or best practices:
+
+> **Important**: Always verify firewall rules in a secondary terminal before closing your primary active SSH session to prevent accidental lockouts.
+
+---
+
+## 4. Media & Image Asset Handling
+
+To embed images, diagrams, or illustrations (SVG, PNG, WebP, JPG) into an article, store the asset files in Astro's static asset directory under `public/images/articles/<article-slug>/`.
+
+### Directory Structure Convention
+
+```text
+public/
+└── images/
+    └── articles/
+        └── <article-slug>/
+            ├── hero.svg
+            └── architecture-diagram.png
+
+src/
+└── articles/
+    └── <article-slug>.mdx
+```
+
+### Embedding Image Syntax in MDX
+
+Reference assets using absolute root-relative paths starting with `/images/articles/<article-slug>/`:
+
+```markdown
+![Hero illustration description](/images/articles/<article-slug>/hero.svg)
+
+![Architecture diagram description](/images/articles/<article-slug>/architecture-diagram.png)
+```
+
+> **Why this convention?**
+> Astro maps the `public/` directory directly to the root URL `/`. Using root-relative paths ensures assets are served instantly during `npm run dev` and copied verbatim to `dist/` during `npm run build`, without requiring Sharp image dependencies or build processing overhead.
+
+---
+
+## 5. Authoring Checklist for New Posts
+
+- [ ] Choose a descriptive, kebab-case filename (e.g., `postgresql-connection-pooling-guide.mdx`).
+- [ ] Place article images in `public/images/articles/<article-slug>/` and embed using `/images/articles/<article-slug>/<filename>.<ext>`.
+- [ ] Set `title`, `description`, `publishDate`, and `tags` in frontmatter.
+- [ ] Set `type: DEV` or `type: SYSADMIN` (blue hero accent) or `type: BEYOND` (orange hero accent).
+- [ ] Estimate `readingTime` (~200 words per minute).
+- [ ] Preview locally with `npm run dev` at `http://localhost:4321`.
+- [ ] When ready to publish, set `draft: false`.
+

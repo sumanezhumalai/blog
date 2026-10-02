@@ -1,5 +1,4 @@
 ---
-import { getFormattedDate } from "@utils/date";
 import type { CollectionEntry } from "astro:content";
 
 interface Props {
@@ -12,7 +11,7 @@ const { article } = Astro.props;
 <header class="mb-10">
   <div class="article-meta mb-2 flex items-center gap-3 font-mono text-xs tracking-wider uppercase">
     <time datetime={article.data.publicationDate.toISOString()}>
-      {getFormattedDate(article.data.publicationDate)}
+      {article.data.publicationDate.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
     </time>
     <span>·</span>
     <span>{article.data.readingTime} min read</span>

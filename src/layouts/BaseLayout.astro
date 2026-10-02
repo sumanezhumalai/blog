@@ -63,23 +63,6 @@ const {
       gtag('js', new Date());
       gtag('config', 'G-PF34ZXRDQV');
     </script>
-
-    <!-- Template Stylesheets -->
-    <link rel="stylesheet" href="/styles/normalize-8.0.1.css" />
-    <link rel="stylesheet" href="/styles/reset.css" />
-    <link rel="stylesheet" href="/styles/font.css" />
-    <link rel="stylesheet" href="/styles/variables.css" />
-    <link rel="stylesheet" href="/styles/color.css" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/styles/media-queries.css" />
-
-    <!-- Touch detection -->
-    <script is:inline>
-      (function() {
-        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        document.documentElement.classList.add(isTouch ? 'touchevents' : 'no-touchevents');
-      })();
-    </script>
   </head>
 
   <body class="theme--16">
@@ -95,6 +78,10 @@ const {
         }
         if (theme) {
           document.body.className = theme;
+          var match = theme.match(/theme--(\d+)/);
+          if (match) {
+            document.documentElement.style.setProperty('--theme-val', match[1]);
+          }
         }
       })();
     </script>
@@ -154,12 +141,5 @@ const {
   .blog-bottom-section {
     margin-top: auto;
     width: 100%;
-  }
-
-  /* Reset any residual main container margins from legacy portfolio */
-  .app-main {
-    margin: 0 !important;
-    padding: 0 !important;
-    display: block !important;
   }
 </style>

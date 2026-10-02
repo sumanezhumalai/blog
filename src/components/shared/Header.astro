@@ -4,16 +4,30 @@ interface Props {
 }
 
 const { activePath = "/" } = Astro.props;
+const brandLetters = "Suman Ezhumalai".split("").map((char, idx) => ({
+  char,
+  isSpace: char === " ",
+  i: idx > 0 ? idx - 1 : undefined,
+  rev: idx > 0 ? 14 - idx : undefined,
+}));
 ---
 
 <header class="blog-header">
   <div class="header-content">
-    <div class="brand">
-      <a href="/" class="brand-link" aria-label="Suman Ezhumalai Home">
-        <h3 class="brand-title">
-          <span>S</span><span>u</span><span>m</span><span>a</span><span>n</span><span class="brand-space">&nbsp;</span><span>E</span><span>z</span><span>h</span><span>u</span><span>m</span><span>a</span><span>l</span><span>a</span><span>i</span>
-        </h3>
-      </a>
+    <div class="brand" aria-label="Suman Ezhumalai">
+      <h3 class="brand-title">
+        {
+          brandLetters.map((item) =>
+            item.isSpace ? (
+              <span class="brand-space" style={`--i: ${item.i}; --rev: ${item.rev};`}>&nbsp;</span>
+            ) : item.i !== undefined ? (
+              <span style={`--i: ${item.i}; --rev: ${item.rev};`}>{item.char}</span>
+            ) : (
+              <span>{item.char}</span>
+            )
+          )
+        }
+      </h3>
     </div>
 
     <nav class="actions" aria-label="Main Navigation">
@@ -51,9 +65,9 @@ const { activePath = "/" } = Astro.props;
     width: 100%;
   }
 
-  .brand-link {
-    color: inherit;
-    text-decoration: none;
+  .brand {
+    cursor: default;
+    user-select: none;
     display: inline-block;
   }
 
@@ -70,6 +84,7 @@ const { activePath = "/" } = Astro.props;
     opacity: 0;
     display: inline-block;
     transition: margin-left 0.3s ease-in, opacity 0.3s ease-in;
+    transition-delay: calc(var(--rev, 0) * 0.01s);
   }
 
   .brand-title .brand-space {
@@ -77,12 +92,14 @@ const { activePath = "/" } = Astro.props;
     overflow: hidden;
     margin-left: 0;
     transition: width 0.3s ease-in, opacity 0.3s ease-in;
+    transition-delay: calc(var(--rev, 0) * 0.01s);
   }
 
   .brand:hover .brand-title span:nth-child(n+2) {
     margin-left: 0;
     opacity: 1;
     transition: margin-left 0.3s ease-out, opacity 0.3s ease-out;
+    transition-delay: calc(var(--i, 0) * 0.01s);
   }
 
   .brand:hover .brand-title .brand-space {
@@ -90,39 +107,8 @@ const { activePath = "/" } = Astro.props;
     margin-left: 0;
     opacity: 1;
     transition: width 0.3s ease-out, opacity 0.3s ease-out;
+    transition-delay: calc(var(--i, 0) * 0.01s);
   }
-
-  /* Stagger delays on hover (expand left-to-right) */
-  .brand:hover .brand-title span:nth-child(2)  { transition-delay: 0.00s; }
-  .brand:hover .brand-title span:nth-child(3)  { transition-delay: 0.01s; }
-  .brand:hover .brand-title span:nth-child(4)  { transition-delay: 0.02s; }
-  .brand:hover .brand-title span:nth-child(5)  { transition-delay: 0.03s; }
-  .brand:hover .brand-title span:nth-child(6)  { transition-delay: 0.04s; }
-  .brand:hover .brand-title span:nth-child(7)  { transition-delay: 0.05s; }
-  .brand:hover .brand-title span:nth-child(8)  { transition-delay: 0.06s; }
-  .brand:hover .brand-title span:nth-child(9)  { transition-delay: 0.07s; }
-  .brand:hover .brand-title span:nth-child(10) { transition-delay: 0.08s; }
-  .brand:hover .brand-title span:nth-child(11) { transition-delay: 0.09s; }
-  .brand:hover .brand-title span:nth-child(12) { transition-delay: 0.10s; }
-  .brand:hover .brand-title span:nth-child(13) { transition-delay: 0.11s; }
-  .brand:hover .brand-title span:nth-child(14) { transition-delay: 0.12s; }
-  .brand:hover .brand-title span:nth-child(15) { transition-delay: 0.13s; }
-
-  /* Reverse stagger delays on mouse leave (collapse right-to-left) */
-  .brand .brand-title span:nth-child(2)  { transition-delay: 0.13s; }
-  .brand .brand-title span:nth-child(3)  { transition-delay: 0.12s; }
-  .brand .brand-title span:nth-child(4)  { transition-delay: 0.11s; }
-  .brand .brand-title span:nth-child(5)  { transition-delay: 0.10s; }
-  .brand .brand-title span:nth-child(6)  { transition-delay: 0.09s; }
-  .brand .brand-title span:nth-child(7)  { transition-delay: 0.08s; }
-  .brand .brand-title span:nth-child(8)  { transition-delay: 0.07s; }
-  .brand .brand-title span:nth-child(9)  { transition-delay: 0.06s; }
-  .brand .brand-title span:nth-child(10) { transition-delay: 0.05s; }
-  .brand .brand-title span:nth-child(11) { transition-delay: 0.04s; }
-  .brand .brand-title span:nth-child(12) { transition-delay: 0.03s; }
-  .brand .brand-title span:nth-child(13) { transition-delay: 0.02s; }
-  .brand .brand-title span:nth-child(14) { transition-delay: 0.01s; }
-  .brand .brand-title span:nth-child(15) { transition-delay: 0.00s; }
 
   .actions {
     display: flex;

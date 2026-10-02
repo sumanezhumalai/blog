@@ -1,0 +1,270 @@
+---
+title: "Securing a VPS with Tailscale: Private Access, Zero Open Admin Ports"
+description: "A practical guide to putting your VPS on a Tailscale tailnet: close public SSH, write least-privilege access rules, share dev services safely, and learn the features developers actually use day to day."
+publishDate: 2026-09-29
+type: SYSADMIN
+readingTime: 10
+tags: ["tailscale", "vps", "security", "networking", "ssh", "devops"]
+draft: false
+---
+
+![Private by default: a glowing shield at the center of a private mesh network](/images/articles/securing-vps-with-tailscale/hero.svg)
+
+A fresh VPS gets its first login attempt within minutes of coming online. Automated scanners sweep every public IPv4 address looking for open SSH, databases and admin panels, and your logs fill up with failed attempts before you have finished your first `apt upgrade`.
+
+The usual answers (change the SSH port, install `fail2ban`, maintain an IP allowlist) all help, but they treat the symptom. The real fix is to stop exposing admin services to the internet at all. **Tailscale** lets you do that in about fifteen minutes: your VPS joins a private, encrypted network called a *tailnet*, and everything you use to administer it moves behind that boundary.
+
+This guide covers what Tailscale gives you, how to lock down a VPS with it, and how developers use it beyond the server-hardening use case.
+
+---
+
+## 1. The Mental Model: Tailnet in Five Terms
+
+| Term | What it means |
+| :--- | :--- |
+| **Tailnet** | Your private network. Every device you sign in with your identity provider (Google, GitHub, Microsoft, etc.) joins it. |
+| **Node** | Any device on the tailnet: laptop, phone, VPS, Raspberry Pi, CI runner. |
+| **Tailscale IP** | A stable private address for each node in the `100.x.y.z` range. It stays the same wherever the node physically is. |
+| **MagicDNS** | Automatic names for nodes, so you type `ssh vps` instead of remembering an IP. |
+| **Policy file** | One JSON-like file that says who can reach what. Access is denied unless a rule allows it. |
+
+Under the hood, Tailscale is a management layer on top of **WireGuard**. Nodes talk to each other directly (peer-to-peer, using NAT traversal) and traffic is end-to-end encrypted. When a direct path is impossible, traffic falls back to relays but stays encrypted. A coordination server distributes keys and policy; it does not carry your data.
+
+```text
+  Laptop ─────────┐
+                  │   WireGuard-encrypted, peer-to-peer
+  Phone ──────────┼──────────────►  [ VPS  100.101.x.x ]
+                  │                    ▲   ▲
+  CI runner ──────┘                    │   └── SSH, Postgres, dashboards
+                                       │       (tailnet only)
+                                Public internet
+                                (ports 80/443 only)
+```
+
+![Architecture diagram: SSH exposed to the internet before, versus admin access restricted to the tailnet after](/images/articles/securing-vps-with-tailscale/architecture-diagram.svg)
+
+---
+
+## 2. Prerequisites
+
+- A Linux VPS (Ubuntu 24.04 LTS assumed) with sudo access.
+- A Tailscale account. The free **Personal** plan covers up to 6 users with unlimited personal devices, which is plenty for solo developers and small side projects.
+- Tailscale installed on your laptop, signed in to the same tailnet.
+- Access to your provider's web console or rescue mode, as a fallback if you lock yourself out.
+
+> **Note**: Tailscale changed its plans in April 2026 (seat-based billing, and a larger free tier). Check the [pricing page](https://tailscale.com/pricing) for current limits before you plan around a specific number.
+
+---
+
+## 3. Step-by-Step: Put the VPS on Your Tailnet
+
+### Install and authenticate
+
+```bash
+# Install Tailscale from the official script
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Join your tailnet and enable Tailscale SSH
+sudo tailscale up --ssh
+```
+
+The command prints a login URL. Open it, approve the device, and the VPS appears in your admin console with its own `100.x.y.z` address.
+
+Confirm the connection from your laptop:
+
+```bash
+tailscale status          # is the VPS listed?
+tailscale ping vps        # direct or via relay?
+ssh youruser@vps          # MagicDNS name, over the tailnet
+```
+
+### Why Tailscale SSH?
+
+With `--ssh`, the Tailscale daemon handles SSH authentication using your tailnet identity instead of key files. There are no `authorized_keys` files to distribute, and no orphaned keys from people who left the project. Removing someone's access means editing one policy, and existing sessions are cut within seconds.
+
+Two things to know:
+
+- It assumes SSH on **port 22**, and cannot use a different port.
+- Restarting `tailscaled` (for example, during an upgrade) ends active Tailscale SSH sessions, so do not upgrade it from inside one you care about.
+
+---
+
+## 4. Write Least-Privilege Access Rules
+
+New tailnets start with a permissive default: every device can reach every other device. That is fine for a trial, not for a server. Tighten it in **Admin Console → Access Controls**.
+
+The pattern that scales is **tags for machines, groups for people**:
+
+```json
+{
+  // Who may apply the tag to a machine
+  "tagOwners": {
+    "tag:vps": ["autogroup:admin"]
+  },
+
+  // Network access: what can reach what
+  "grants": [
+    {
+      "src": ["autogroup:member"],
+      "dst": ["tag:vps"],
+      "ip":  ["tcp:22", "tcp:443"]
+    }
+  ],
+
+  // SSH access: who may log in as which OS user
+  "ssh": [
+    {
+      "action": "check",
+      "src":    ["autogroup:member"],
+      "dst":    ["tag:vps"],
+      "users":  ["autogroup:nonroot"]
+    }
+  ]
+}
+```
+
+Then re-register the VPS as a tagged server:
+
+```bash
+sudo tailscale up --ssh --advertise-tags=tag:vps
+```
+
+A few reasons this matters:
+
+- **Both layers are required.** Tailscale SSH needs a network rule *and* an SSH rule. Missing either one and connections are refused.
+- **`check` mode is step-up authentication.** It asks you to re-authenticate with your identity provider (every 12 hours by default) before opening a session. Use `accept` only where friction matters more than assurance.
+- **Tagged machines are treated as servers.** They are not tied to one person's login, so they do not vanish when an employee's account is removed.
+
+> **Important**: Rules in the SSH section of the policy file are checked from most to least restrictive. If both a `check` and an `accept` rule match a connection, `check` wins.
+
+---
+
+## 5. Close the Public Door
+
+Once you have confirmed that SSH over the tailnet works, remove SSH from the public internet. Do this in two layers: the host firewall and, if your provider has one, the cloud firewall.
+
+### Host firewall with UFW
+
+```bash
+# Reset and set sane defaults
+sudo ufw --force reset
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Public web traffic only
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Everything arriving over the Tailscale interface is allowed
+sudo ufw allow in on tailscale0
+
+sudo ufw --force enable
+sudo ufw status verbose
+```
+
+The key line is `ufw allow in on tailscale0`. Traffic arriving through the encrypted tunnel is trusted, and anything else reaching the public interface is dropped.
+
+> **Important**: Keep your current SSH session open. In a *second* terminal, run `ssh youruser@vps` over the tailnet and confirm it works before you close anything. If it does not, you still have a working shell to fix the firewall.
+
+### Cloud firewall (Hetzner, DigitalOcean, AWS, and others)
+
+Remove the inbound rule for TCP 22. Optionally allow inbound **UDP 41641**, which lets Tailscale establish direct connections instead of relaying. Tailscale still works without it, just sometimes with higher latency.
+
+### The Docker gotcha
+
+Docker publishes container ports by editing `iptables` directly, which can bypass UFW rules entirely. A container started with `-p 5432:5432` may be public even when UFW says otherwise. Bind to loopback or the tailnet address instead:
+
+```yaml
+# docker-compose.yml
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"   # reachable only from the VPS itself
+```
+
+Then reach it from your laptop through the tailnet (or `tailscale serve`, covered next) rather than the public IP.
+
+---
+
+## 6. Share Services: Serve vs. Funnel
+
+You do not need to bind services to `0.0.0.0` to use them from other devices. Tailscale ships two commands for this, and picking the right one matters.
+
+| | `tailscale serve` | `tailscale funnel` |
+| :--- | :--- | :--- |
+| **Audience** | Only devices on your tailnet | The entire public internet |
+| **Use it for** | Dashboards, admin UIs, internal tools | Webhook testing, quick public demos |
+| **TLS** | Automatic HTTPS on your `*.ts.net` name | Automatic HTTPS |
+| **Identity** | Passes the caller's Tailscale identity to your app in request headers | Does not (callers are anonymous) |
+| **Limits** | Needs HTTPS enabled for the tailnet | Ports 443, 8443, 10000 only; bandwidth is limited; needs a policy attribute |
+
+```bash
+# Private: your dev dashboard, HTTPS, tailnet-only
+sudo tailscale serve --bg 3000
+
+# Public: a temporary demo or webhook receiver
+sudo tailscale funnel --bg 3000
+
+# See what is currently exposed, and reset when done
+tailscale serve status
+tailscale serve reset
+```
+
+Because Serve adds identity headers, a small internal app can simply trust "the request came from `alice@example.com`" without building its own login screen. Funnel strips that guarantee, so treat anything behind it as fully public and protect it accordingly.
+
+---
+
+## 7. How Developers Actually Use It
+
+Beyond hardening a VPS, these are the patterns that make Tailscale a daily-driver tool.
+
+| Feature | What it does | Everyday dev use |
+| :--- | :--- | :--- |
+| **MagicDNS** | Stable names for every node | `psql -h staging-db`, no more IP spreadsheets |
+| **Tailscale SSH** | Identity-based SSH, no key files | Also works with VS Code Remote-SSH for editing on the server |
+| **Serve** | Private HTTPS for local services | Reach Grafana, Portainer or your dev server from your phone |
+| **Funnel** | Temporary public URL | Test Stripe or GitHub webhooks against your laptop |
+| **Subnet router** | Advertise a private network through one node | Reach a VPC or home lab without installing Tailscale on every machine |
+| **Exit node** | Route all traffic through a chosen node | Browse safely on café Wi-Fi via your own VPS |
+| **Tags and auth keys** | Non-human identities for machines | Bootstrap servers and CI runners with no interactive login |
+| **Node sharing** | Give one machine to someone outside your tailnet | Let a client or contractor see a staging box only |
+| **Taildrop** | Send files between your devices | Move a log or build artifact from server to laptop |
+| **Tailnet Lock** | Require signed approval of new nodes | Protection even if the coordination server were compromised |
+
+A few concrete workflows:
+
+- **Private staging.** Run Postgres, Redis and your API on a VPS with nothing public except the reverse proxy. Everyone on the team reaches the rest over the tailnet.
+- **Zero-touch provisioning.** Pass a pre-authorized, tagged auth key to `cloud-init` or Terraform. A new server boots, joins the tailnet, and is locked down without you ever logging in.
+- **Ephemeral CI.** Let a CI job join the tailnet with a short-lived key, deploy or run migrations against a private host, and disappear when the job ends.
+- **One-command remote dev.** Point VS Code at `vps` over Remote-SSH and edit against real hardware and real data, with nothing exposed.
+
+---
+
+## 8. Hardening Checklist and Gotchas
+
+- [ ] Tag every server (`tag:vps`, `tag:staging`) and write rules against tags, not individual machines.
+- [ ] Replace the default allow-all policy with explicit grants, and add policy tests so mistakes are caught before they ship.
+- [ ] Use `check` mode for SSH as root or on production hosts.
+- [ ] Prefer one-off or ephemeral auth keys for automation. Treat reusable keys like passwords.
+- [ ] Turn on device approval, and Tailnet Lock if your threat model needs it.
+- [ ] Remove public SSH from **both** UFW and the cloud firewall.
+- [ ] Audit Docker port bindings with `sudo ss -tlnp` from the VPS, and by scanning the public IP from outside.
+- [ ] Keep an out-of-band recovery path (provider web console or rescue mode). Do not depend on the tailnet alone.
+- [ ] Keep `tailscaled` updated, and do it from the console or a non-Tailscale session.
+
+> **Important**: Tailscale relies on a hosted coordination service to distribute keys and policy. Existing connections keep working through a brief outage, but you cannot add new nodes or change policy. If you need to own that piece too, the open-source **Headscale** control server is a popular self-hosted alternative, at the cost of running and securing it yourself.
+
+---
+
+## 9. Wrapping Up
+
+The core idea is small: **the safest port is the one that is not open.** By moving SSH, databases and admin dashboards onto a tailnet, your VPS exposes only what the public actually needs (usually 80 and 443) while you get a smoother workflow: named hosts, no key management, private HTTPS, and one central place to grant or revoke access.
+
+Start small. Install Tailscale on one VPS, verify SSH over the tailnet, then close port 22. Once you have felt how much quieter the logs get, extending the pattern to staging databases, CI runners and internal tools follows naturally.
+
+### Further reading
+
+- Tailscale docs: *Tailscale SSH*, *Serve*, *Funnel*, and *Use UFW to lock down an Ubuntu server*
+- Tailscale docs: *Syntax reference for the tailnet policy file* (grants, tags, SSH rules)
